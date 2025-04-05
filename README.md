@@ -2,7 +2,8 @@
 
 An advanced system for generating, animating, and evolving anime characters using diffusion models and genetic algorithms.
 
-![Anime Character Evolution System Banner](docs/images/system_banner.png)
+![Anime Character Evolution System Banner]![image](https://github.com/user-attachments/assets/30d27e9a-d0ec-4242-976b-31aad460ced3)
+)
 
 ## Overview
 
