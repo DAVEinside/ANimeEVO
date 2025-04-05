@@ -1,0 +1,105 @@
+app:
+  debug: true
+  log_level: INFO
+  name: Anime Character Evolution System
+  version: 0.1.0
+character:
+  attributes:
+    personality:
+    - archetype
+    - traits
+    - temperament
+    - motivation
+    - background
+    physical:
+    - hair_color
+    - eye_color
+    - skin_tone
+    - body_type
+    - height
+    - age
+    - gender
+    - distinctive_features
+    style:
+    - anime_genre
+    - art_style
+    - era
+    - color_palette
+diffusion:
+  anime_model: models/diffusion/waiNSFWillustrious_v130.safetensors
+  base_model: models/diffusion/waiNSFWillustrious_v130.safetensors
+  inference:
+    clip_skip: 1
+    guidance_scale: 7.5
+    height: 512
+    sampler: DDIM
+    seed: -1
+    steps: 30
+    width: 512
+evolution:
+  crossover_rate: 0.75
+  elite_size: 2
+  fitness_weights:
+    diversity: 0.1
+    style_consistency: 0.2
+    user_feedback: 0.7
+  generations: 5
+  mutation_rate: 0.15
+  population_size: 8
+  selection_method: tournament
+  tournament_size: 3
+interface:
+  cli:
+    enabled: true
+  web:
+    enabled: true
+    host: 0.0.0.0
+    port: 8080
+    static_dir: ./interface/static
+    template_dir: ./interface/templates
+logging:
+  evolution_metrics:
+  - diversity
+  - user_satisfaction
+  - generation_time
+  save_evolution_history: true
+  save_generations: true
+  use_wandb: false
+  wandb_project: anime_evolution
+output:
+  animation:
+    duration: 3.0
+    enabled: true
+    formats:
+    - mp4
+    - gif
+    fps: 24
+  image:
+    formats:
+    - png
+    - jpg
+    high_res_multiple: 2
+    resolution:
+    - 512
+    - 512
+    samples_per_character: 4
+  model_3d:
+    enabled: false
+  voice:
+    enabled: true
+    formats:
+    - wav
+    - mp3
+    sample_rate: 22050
+paths:
+  cache_dir: ./cache
+  data_dir: ./data
+  models_dir: ./models
+  output_dir: ./outputs
+  temp_dir: ./temp
+resources:
+  batch_size: 4
+  cpu_threads: 4
+  gpu_id: -1
+  memory_limit: 8GB
+  precision: fp16

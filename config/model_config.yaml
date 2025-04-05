@@ -1,0 +1,104 @@
+attribute_conditioning:
+  concept_dir: ./concepts
+  embedding_dir: ./embeddings
+  embeddings:
+    character_types:
+    - tsundere
+    - kuudere
+    - yandere
+    - dandere
+    - deredere
+    - himedere
+    - otaku
+    - protagonist
+    - villain
+    eye_colors:
+    - blue_eyes
+    - red_eyes
+    - green_eyes
+    - yellow_eyes
+    - purple_eyes
+    - heterochromia
+    hair_colors:
+    - blue_hair
+    - red_hair
+    - blonde_hair
+    - pink_hair
+    - green_hair
+    - purple_hair
+    - white_hair
+    - black_hair
+  use_dreambooth_concepts: true
+  use_textual_inversion: true
+diffusion:
+  anime_lora: models/lora/realisticVision6081_v51H
+  anime_model: models/diffusion/waiNSFWillustrious_v130.safetensors
+  base_model: models/diffusion/waiNSFWillustrious_v130.safetensors
+  inference:
+    batch_size: 4
+    clip_skip: 2
+    eta: 0.0
+    guidance_scale: 7.5
+    height: 512
+    sampler: DPM++ 2M Karras
+    seed: -1
+    steps: 30
+    width: 512
+lora:
+  models:
+  - alpha: 0.7
+    name: realistic_vision
+    path: models/lora/realisticVision6081_v51H
+  - alpha: 0.7
+    name: pruned_model
+    path: models/lora/v1-5-pruned.safetensors
+multimodal:
+  animation:
+    model: animatediff
+    motion_modules:
+    - mm_sd_v15
+    motion_strength: 0.6
+  model_3d:
+    resolution: 256
+    texture_resolution: 1024
+    type: img2mesh
+    view_angles: 8
+  voice:
+    language: japanese
+    model: tacotron2
+    vocoder: waveglow
+    voice_presets:
+    - female_teen
+    - female_adult
+    - male_teen
+    - male_adult
+    - child
+style_transfer:
+  enabled: true
+  method: controlnet
+  style_reference_dir: ./data/style_references
+  styles:
+  - name: shonen
+    reference: shonen_style.png
+    strength: 0.8
+  - name: shojo
+    reference: shojo_style.png
+    strength: 0.8
+  - name: seinen
+    reference: seinen_style.png
+    strength: 0.8
+  - name: isekai
+    reference: isekai_style.png
+    strength: 0.75
+  - name: mecha
+    reference: mecha_style.png
+    strength: 0.85
+  - name: chibi
+    reference: chibi_style.png
+    strength: 0.9
+  - name: 90s_anime
+    reference: 90s_anime.png
+    strength: 0.7
+  - name: modern_anime
+    reference: modern_anime.png
+    strength: 0.7

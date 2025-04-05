@@ -1,0 +1,379 @@
+/*
+ * Anime Character Evolution System
+ * Main stylesheet
+ */
+
+/* Base styles */
+:root {
+    --primary-color: #6f42c1;
+    --primary-light: #a98eda;
+    --primary-dark: #4b2982;
+    --secondary-color: #20c997;
+    --accent-color: #fd7e14;
+    --text-color: #212529;
+    --text-muted: #6c757d;
+    --bg-color: #ffffff;
+    --bg-light: #f8f9fa;
+    --border-color: #dee2e6;
+    
+    --anime-pink: #ff6b9a;
+    --anime-blue: #4287f5;
+    --anime-purple: #9d65ff;
+    --anime-green: #51cf66;
+    --anime-yellow: #ffd43b;
+  }
+  
+  /* Dark mode variables */
+  .dark-mode {
+    --primary-color: #9d65ff;
+    --primary-light: #b794f6;
+    --primary-dark: #7c4dff;
+    --secondary-color: #20c997;
+    --accent-color: #ffa94d;
+    --text-color: #f8f9fa;
+    --text-muted: #adb5bd;
+    --bg-color: #212529;
+    --bg-light: #343a40;
+    --border-color: #495057;
+  }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    transition: background-color 0.3s ease;
+  }
+  
+  /* Custom utility classes */
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  
+  .text-primary-anime {
+    color: var(--primary-color);
+  }
+  
+  .bg-anime-gradient {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  }
+  
+  /* Navigation */
+  .navbar-dark {
+    background-color: var(--primary-dark) !important;
+  }
+  
+  .nav-link {
+    font-weight: 500;
+  }
+  
+  .nav-link:hover {
+    color: var(--secondary-color) !important;
+  }
+  
+  /* Cards */
+  .card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 0.5rem;
+  }
+  
+  .card.hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  .card-header {
+    font-weight: 600;
+  }
+  
+  /* Feature icons */
+  .feature-icon {
+    width: 3rem;
+    height: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.5rem;
+  }
+  
+  /* Step numbers */
+  .step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.25rem;
+    font-weight: 600;
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  /* Character thumbnails */
+  .character-thumbnail {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 0.25rem;
+  }
+  
+  .placeholder-image {
+    transition: all 0.3s ease;
+  }
+  
+  /* Character image grid */
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+  
+  .image-grid-item {
+    position: relative;
+    border-radius: 0.25rem;
+    overflow: hidden;
+  }
+  
+  .image-grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+  
+  .image-grid-item:hover img {
+    transform: scale(1.05);
+  }
+  
+  .image-grid-actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.5rem;
+    display: flex;
+    justify-content: space-around;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .image-grid-item:hover .image-grid-actions {
+    opacity: 1;
+  }
+  
+  /* Variant images */
+  .variant-image {
+    cursor: pointer;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+  
+  .variant-image:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Tags input */
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  
+  .tag-item {
+    background-color: var(--primary-light);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+  
+  .tag-item .btn-close {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Color picker */
+  .color-preview {
+    width: 2rem;
+    height: 2rem;
+    display: inline-block;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border-color);
+  }
+  
+  /* Loading overlay */
+  #loading-overlay {
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 1050;
+  }
+  
+  .dark-mode #loading-overlay {
+    background-color: rgba(33, 37, 41, 0.8);
+  }
+  
+  /* Evolution cards */
+  .result-card {
+    transition: all 0.3s ease;
+  }
+  
+  .result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Lineage visualization */
+  .lineage-tree {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background-color: var(--bg-light);
+  }
+  
+  .lineage-generation {
+    text-align: center;
+  }
+  
+  .generation-label {
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+  
+  .lineage-node {
+    display: inline-block;
+    padding: 0.5rem;
+    margin: 0.25rem;
+    min-width: 120px;
+    transition: all 0.2s ease;
+  }
+  
+  .lineage-node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .node-id {
+    font-family: monospace;
+    font-size: 0.875rem;
+  }
+  
+  .node-links {
+    margin-top: 0.5rem;
+  }
+  
+  /* Multimodal outputs */
+  .animation-container, .voice-container {
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+  }
+  
+  /* Buttons */
+  .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+  }
+  
+  .btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+  }
+  
+  /* Form elements */
+  .form-control:focus, .form-select:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.25);
+  }
+  
+  /* Style Transfer modal */
+  #style-transfer-preview-container {
+    min-height: 300px;
+  }
+  
+  /* Custom animations */
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 767.98px) {
+    .image-grid {
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .lineage-node {
+      min-width: 100px;
+    }
+  }
+  
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    .card {
+      border: 1px solid #ddd !important;
+      box-shadow: none !important;
+    }
+  }
+  
+  /* Accessibility */
+  .btn:focus, .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(111, 66, 193, 0.5);
+  }
+  
+  /* Dark mode toggle */
+  #theme-toggle {
+    cursor: pointer;
+  }
+  
+  /* Toast notifications */
+  .toast-container {
+    z-index: 1100;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: var(--bg-light);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 5px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+  }

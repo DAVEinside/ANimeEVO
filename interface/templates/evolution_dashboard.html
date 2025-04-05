@@ -1,0 +1,1148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<!-- Chart.js for lineage visualization -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="fw-bold">Evolution Dashboard</h1>
+            <p class="text-muted">Evolve and refine your anime character over generations</p>
+        </div>
+        <div class="col-md-4 text-md-end d-flex justify-content-md-end align-items-center">
+            <a href="/character/view/{{ character.id }}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-eye me-1"></i>View Character
+            </a>
+            <button type="button" id="save-all-btn" class="btn btn-outline-success">
+                <i class="fas fa-save me-1"></i>Save All
+            </button>
+        </div>
+    </div>
+
+    <!-- Character Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">Source Character</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div id="source-character-image" class="mb-3">
+                        <img src="" class="img-fluid rounded" style="max-width: 100%; max-height: 384px;" alt="{{ character.name }}">
+                    </div>
+                    <h4 id="source-character-name">{{ character.name or 'Unnamed Character' }}</h4>
+                    <div id="source-character-info" class="text-muted mb-3">
+                        <p class="mb-1">{{ character.gender }}, {{ character.age_category }}</p>
+                        <p class="mb-1">{{ character.hair_color }} hair, {{ character.eye_color }} eyes</p>
+                        <p class="mb-0">{{ character.anime_style or 'Default' }} style</p>
+                    </div>
+                    <div id="source-character-stats" class="d-flex justify-content-center gap-3 mb-3">
+                        <div class="text-center">
+                            <div class="badge bg-primary">Gen {{ character.generation }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="badge bg-secondary">ID: {{ character.id[:8] }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">Evolution Controls</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">Evolution Type</h6>
+                        <div class="btn-group w-100" role="group" id="evolution-type-group">
+                            <input type="radio" class="btn-check" name="evolution-type" id="evolution-single" value="single" checked>
+                            <label class="btn btn-outline-primary" for="evolution-single">
+                                <i class="fas fa-dice me-1"></i>Single Mutation
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="evolution-type" id="evolution-pair" value="pair">
+                            <label class="btn btn-outline-primary" for="evolution-pair">
+                                <i class="fas fa-exchange-alt me-1"></i>Character Fusion
+                            </label>
+                            
+                            <input type="radio" class="btn-check" name="evolution-type" id="evolution-generation" value="generation">
+                            <label class="btn btn-outline-primary" for="evolution-generation">
+                                <i class="fas fa-users me-1"></i>Generation Evolution
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Single Mutation Controls -->
+                    <div id="single-controls" class="evolution-controls">
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-2">Mutation Settings</h6>
+                            <div class="form-group">
+                                <label for="mutation-rate-single" class="form-label">Mutation Rate: <span id="mutation-rate-single-value">0.3</span></label>
+                                <input type="range" class="form-range" id="mutation-rate-single" min="0.1" max="0.9" step="0.1" value="0.3">
+                                <div class="form-text">Higher values create more diverse but potentially drastic changes</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="button" id="evolve-single-btn" class="btn btn-primary">
+                                <i class="fas fa-dna me-2"></i>Evolve Character
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Pair Evolution Controls -->
+                    <div id="pair-controls" class="evolution-controls d-none">
+                        <div class="mb-3">
+                            <h6 class="fw-bold mb-2">Select Second Character</h6>
+                            <select class="form-select" id="second-character-select">
+                                <option value="" selected disabled>Choose a character...</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                            <div class="form-text">Select another character to combine traits with</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <h6 class="fw-bold mb-2">Second Character Preview</h6>
+                                <button class="btn btn-sm btn-outline-secondary" id="refresh-characters-btn">
+                                    <i class="fas fa-sync-alt me-1"></i>Refresh List
+                                </button>
+                            </div>
+                            <div id="second-character-preview" class="border rounded p-3 text-center">
+                                <p class="text-muted mb-0">Select a character to preview</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="button" id="evolve-pair-btn" class="btn btn-primary" disabled>
+                                <i class="fas fa-object-group me-2"></i>Combine Characters
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Generation Evolution Controls -->
+                    <div id="generation-controls" class="evolution-controls d-none">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="population-size" class="form-label">Population Size: <span id="population-size-value">8</span></label>
+                                    <input type="range" class="form-range" id="population-size" min="4" max="12" step="2" value="8">
+                                    <div class="form-text">Number of characters in the population</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="mutation-rate-gen" class="form-label">Mutation Rate: <span id="mutation-rate-gen-value">0.3</span></label>
+                                    <input type="range" class="form-range" id="mutation-rate-gen" min="0.1" max="0.9" step="0.1" value="0.3">
+                                    <div class="form-text">Higher values create more diversity</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="button" id="evolve-generation-btn" class="btn btn-primary">
+                                <i class="fas fa-project-diagram me-2"></i>Evolve Generation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evolution Results -->
+    <div id="evolution-results" class="mb-4 d-none">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">Evolution Results</h5>
+                <div class="btn-group">
+                    <button type="button" id="regenerate-all-btn" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-redo me-1"></i>Regenerate All
+                    </button>
+                    <button type="button" id="clear-results-btn" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i>Clear
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="results-loading" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5 class="mb-0">Evolution in progress...</h5>
+                    <p class="text-muted">This may take a few moments</p>
+                </div>
+                
+                <div id="results-container" class="row g-4">
+                    <!-- Results will be added here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lineage Visualization -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">Character Lineage</h5>
+                </div>
+                <div class="card-body">
+                    <div id="lineage-loading" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="mb-0">Loading lineage data...</h5>
+                    </div>
+                    
+                    <div id="no-lineage" class="text-center py-5">
+                        <i class="fas fa-family-tree fa-3x text-muted mb-3"></i>
+                        <h5 class="mb-0">No character lineage available yet</h5>
+                        <p class="text-muted">Evolve characters to see their ancestry</p>
+                    </div>
+                    
+                    <div id="lineage-visualization" class="d-none">
+                        <canvas id="lineage-chart" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Character data
+    let sourceCharacter = JSON.parse('{{ character_json|safe }}');
+    let evolvedCharacters = [];
+    let allCharacters = [];
+    let secondCharacter = null;
+    
+    $(document).ready(function() {
+        // Initialize the page
+        initializeEvolutionDashboard();
+        
+        // Load source character image
+        loadSourceCharacterImage();
+        
+        // Load available characters for pair evolution
+        loadAvailableCharacters();
+        
+        // Load lineage data
+        loadLineageData(sourceCharacter.id);
+        
+        // Evolution type selection
+        $('input[name="evolution-type"]').change(function() {
+            const evolutionType = $(this).val();
+            
+            // Hide all evolution controls
+            $('.evolution-controls').addClass('d-none');
+            
+            // Show selected controls
+            $(`#${evolutionType}-controls`).removeClass('d-none');
+        });
+        
+        // Slider value display
+        $('#mutation-rate-single').on('input', function() {
+            $('#mutation-rate-single-value').text($(this).val());
+        });
+        
+        $('#mutation-rate-gen').on('input', function() {
+            $('#mutation-rate-gen-value').text($(this).val());
+        });
+        
+        $('#population-size').on('input', function() {
+            $('#population-size-value').text($(this).val());
+        });
+        
+        // Refresh characters button
+        $('#refresh-characters-btn').click(function() {
+            loadAvailableCharacters();
+        });
+        
+        // Second character select
+        $('#second-character-select').change(function() {
+            const selectedId = $(this).val();
+            if (selectedId) {
+                loadSecondCharacter(selectedId);
+            } else {
+                clearSecondCharacterPreview();
+                $('#evolve-pair-btn').attr('disabled', true);
+            }
+        });
+        
+        // Evolve single button
+        $('#evolve-single-btn').click(function() {
+            evolveSingle();
+        });
+        
+        // Evolve pair button
+        $('#evolve-pair-btn').click(function() {
+            evolvePair();
+        });
+        
+        // Evolve generation button
+        $('#evolve-generation-btn').click(function() {
+            evolveGeneration();
+        });
+        
+        // Regenerate all button
+        $('#regenerate-all-btn').click(function() {
+            regenerateAllCharacters();
+        });
+        
+        // Clear results button
+        $('#clear-results-btn').click(function() {
+            clearResults();
+        });
+        
+        // Save all button
+        $('#save-all-btn').click(function() {
+            saveAllCharacters();
+        });
+    });
+    
+    // Initialize the dashboard
+    function initializeEvolutionDashboard() {
+        // Show the correct evolution controls
+        const evolutionType = $('input[name="evolution-type"]:checked').val();
+        $(`.evolution-controls`).addClass('d-none');
+        $(`#${evolutionType}-controls`).removeClass('d-none');
+    }
+    
+    // Load source character image
+    function loadSourceCharacterImage() {
+        $.ajax({
+            url: `/api/character/${sourceCharacter.id}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.image_paths && response.image_paths.length > 0) {
+                    const imagePath = response.image_paths[0];
+                    $('#source-character-image img').attr('src', `/outputs/${imagePath}`);
+                } else {
+                    // Use placeholder
+                    $('#source-character-image').html(`
+                        <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 300px;">
+                            <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                        </div>
+                    `);
+                }
+            },
+            error: function() {
+                // Use placeholder on error
+                $('#source-character-image').html(`
+                    <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 300px;">
+                        <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    // Load available characters for pair evolution
+    function loadAvailableCharacters() {
+        $.ajax({
+            url: '/api/characters',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    // Store all characters
+                    allCharacters = response.characters || [];
+                    
+                    // Update second character select
+                    const select = $('#second-character-select');
+                    select.empty();
+                    select.append(`<option value="" selected disabled>Choose a character...</option>`);
+                    
+                    // Add options for characters other than source
+                    allCharacters.forEach(char => {
+                        if (char.id !== sourceCharacter.id) {
+                            select.append(`<option value="${char.id}">${char.name || 'Unnamed'} (ID: ${char.id.substring(0, 8)})</option>`);
+                        }
+                    });
+                    
+                    // Enable/disable pair evolution button
+                    $('#evolve-pair-btn').attr('disabled', allCharacters.length <= 1);
+                    
+                    // If no other characters, show message
+                    if (allCharacters.length <= 1) {
+                        $('#second-character-preview').html(`
+                            <p class="text-warning mb-0">No other characters available</p>
+                            <small class="text-muted">Create more characters first</small>
+                        `);
+                    }
+                }
+            },
+            error: function() {
+                // Handle error
+                $('#second-character-preview').html(`
+                    <p class="text-danger mb-0">Error loading characters</p>
+                    <small class="text-muted">Please try again</small>
+                `);
+            }
+        });
+    }
+    
+    // Load second character preview
+    function loadSecondCharacter(characterId) {
+        $.ajax({
+            url: `/api/character/${characterId}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    secondCharacter = response.character;
+                    
+                    let previewHtml = `<div class="row align-items-center">`;
+                    
+                    // Image
+                    previewHtml += `<div class="col-md-4">`;
+                    if (response.image_paths && response.image_paths.length > 0) {
+                        previewHtml += `<img src="/outputs/${response.image_paths[0]}" class="img-fluid rounded" alt="${secondCharacter.name || 'Character'}">`;
+                    } else {
+                        previewHtml += `
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 100px;">
+                                <i class="fas fa-user-circle fa-3x text-secondary"></i>
+                            </div>
+                        `;
+                    }
+                    previewHtml += `</div>`;
+                    
+                    // Info
+                    previewHtml += `<div class="col-md-8 text-start">`;
+                    previewHtml += `<h6>${secondCharacter.name || 'Unnamed Character'}</h6>`;
+                    previewHtml += `<p class="mb-1 small">${secondCharacter.gender || ''}, ${secondCharacter.age_category || ''}</p>`;
+                    previewHtml += `<p class="mb-1 small">${secondCharacter.hair_color || ''} hair, ${secondCharacter.eye_color || ''} eyes</p>`;
+                    previewHtml += `<p class="mb-0 small">${secondCharacter.anime_style || 'Default'} style</p>`;
+                    previewHtml += `</div>`;
+                    
+                    previewHtml += `</div>`;
+                    
+                    $('#second-character-preview').html(previewHtml);
+                    $('#evolve-pair-btn').removeAttr('disabled');
+                }
+            },
+            error: function() {
+                clearSecondCharacterPreview();
+                $('#evolve-pair-btn').attr('disabled', true);
+            }
+        });
+    }
+    
+    // Clear second character preview
+    function clearSecondCharacterPreview() {
+        secondCharacter = null;
+        $('#second-character-preview').html(`
+            <p class="text-muted mb-0">Select a character to preview</p>
+        `);
+    }
+    
+    // Evolve single character
+    function evolveSingle() {
+        // Show loading
+        $('#results-loading').removeClass('d-none');
+        $('#results-container').addClass('d-none');
+        $('#evolution-results').removeClass('d-none');
+        
+        // Get mutation rate
+        const mutationRate = parseFloat($('#mutation-rate-single').val());
+        
+        // Send evolution request
+        $.ajax({
+            url: '/api/character/evolve',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: sourceCharacter.id,
+                type: 'single',
+                mutation_rate: mutationRate
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Store evolved characters
+                    evolvedCharacters = response.results.map(result => {
+                        return {
+                            character: result.character,
+                            image_paths: result.image_paths
+                        };
+                    });
+                    
+                    // Display results
+                    displayResults();
+                    
+                    // Reload lineage data
+                    if (evolvedCharacters.length > 0) {
+                        loadLineageData(evolvedCharacters[0].character.id);
+                    }
+                } else {
+                    showError('Evolution failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Evolution failed', error);
+            },
+            complete: function() {
+                // Hide loading
+                $('#results-loading').addClass('d-none');
+                $('#results-container').removeClass('d-none');
+            }
+        });
+    }
+    
+    // Evolve pair of characters
+    function evolvePair() {
+        if (!secondCharacter) {
+            showError('Evolution failed', 'No second character selected');
+            return;
+        }
+        
+        // Show loading
+        $('#results-loading').removeClass('d-none');
+        $('#results-container').addClass('d-none');
+        $('#evolution-results').removeClass('d-none');
+        
+        // Send evolution request
+        $.ajax({
+            url: '/api/character/evolve',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: sourceCharacter.id,
+                type: 'pair',
+                other_character_id: secondCharacter.id
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Store evolved characters
+                    evolvedCharacters = response.results.map(result => {
+                        return {
+                            character: result.character,
+                            image_paths: result.image_paths
+                        };
+                    });
+                    
+                    // Display results
+                    displayResults();
+                    
+                    // Reload lineage data
+                    if (evolvedCharacters.length > 0) {
+                        loadLineageData(evolvedCharacters[0].character.id);
+                    }
+                } else {
+                    showError('Evolution failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Evolution failed', error);
+            },
+            complete: function() {
+                // Hide loading
+                $('#results-loading').addClass('d-none');
+                $('#results-container').removeClass('d-none');
+            }
+        });
+    }
+    
+    // Evolve generation
+    function evolveGeneration() {
+        // Show loading
+        $('#results-loading').removeClass('d-none');
+        $('#results-container').addClass('d-none');
+        $('#evolution-results').removeClass('d-none');
+        
+        // Get settings
+        const populationSize = parseInt($('#population-size').val());
+        const mutationRate = parseFloat($('#mutation-rate-gen').val());
+        
+        // Send evolution request
+        $.ajax({
+            url: '/api/character/evolve',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: sourceCharacter.id,
+                type: 'generation',
+                population_size: populationSize,
+                mutation_rate: mutationRate
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Store evolved characters
+                    evolvedCharacters = response.results.map(result => {
+                        return {
+                            character: result.character,
+                            image_paths: result.image_paths
+                        };
+                    });
+                    
+                    // Display results
+                    displayResults();
+                    
+                    // Reload lineage data
+                    if (evolvedCharacters.length > 0) {
+                        loadLineageData(evolvedCharacters[0].character.id);
+                    }
+                } else {
+                    showError('Evolution failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Evolution failed', error);
+            },
+            complete: function() {
+                // Hide loading
+                $('#results-loading').addClass('d-none');
+                $('#results-container').removeClass('d-none');
+            }
+        });
+    }
+    
+    // Display evolution results
+    function displayResults() {
+        const container = $('#results-container');
+        container.empty();
+        
+        evolvedCharacters.forEach((item, index) => {
+            const character = item.character;
+            const imagePath = item.image_paths && item.image_paths.length > 0 ? 
+                `/outputs/${item.image_paths[0]}` : '';
+            
+            // Create card for character
+            const card = $(`
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm result-card" data-index="${index}">
+                        <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0 fw-bold">${character.name || 'Unnamed'}</h5>
+                            <div class="badge bg-primary">Gen ${character.generation}</div>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                ${imagePath ? `<img src="${imagePath}" class="img-fluid rounded" alt="${character.name}">` : `
+                                    <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 300px;">
+                                        <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                                    </div>
+                                `}
+                            </div>
+                            <div class="mb-3 text-start">
+                                <p class="mb-1"><strong>ID:</strong> ${character.id.substring(0, 8)}</p>
+                                <p class="mb-1"><strong>Gender:</strong> ${character.gender || 'N/A'}</p>
+                                <p class="mb-1"><strong>Age:</strong> ${character.age_category || 'N/A'}</p>
+                                <p class="mb-1"><strong>Hair:</strong> ${character.hair_color || 'N/A'}</p>
+                                <p class="mb-1"><strong>Eyes:</strong> ${character.eye_color || 'N/A'}</p>
+                                <p class="mb-0"><strong>Style:</strong> ${character.anime_style || 'Default'}</p>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 py-3">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary regenerate-btn flex-grow-1" data-index="${index}">
+                                    <i class="fas fa-redo me-1"></i>Regenerate
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-success save-btn flex-grow-1" data-index="${index}">
+                                    <i class="fas fa-save me-1"></i>Save
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary use-as-source-btn flex-grow-1" data-index="${index}">
+                                    <i class="fas fa-arrow-up me-1"></i>Use
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            
+            container.append(card);
+        });
+        
+        // Add event handlers for buttons
+        $('.regenerate-btn').click(function() {
+            const index = $(this).data('index');
+            regenerateCharacter(index);
+        });
+        
+        $('.save-btn').click(function() {
+            const index = $(this).data('index');
+            saveCharacter(index);
+        });
+        
+        $('.use-as-source-btn').click(function() {
+            const index = $(this).data('index');
+            useAsSource(index);
+        });
+    }
+    
+    // Regenerate a specific character
+    function regenerateCharacter(index) {
+        if (index < 0 || index >= evolvedCharacters.length) return;
+        
+        const character = evolvedCharacters[index].character;
+        
+        // Show loading for this character
+        const card = $(`.result-card[data-index="${index}"]`);
+        const cardBody = card.find('.card-body');
+        const originalContent = cardBody.html();
+        
+        cardBody.html(`
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-0">Regenerating...</h5>
+            </div>
+        `);
+        
+        // Send regeneration request
+        $.ajax({
+            url: '/api/character/regenerate',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                num_samples: 1
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Update character images
+                    evolvedCharacters[index].image_paths = response.image_paths;
+                    
+                    // Update display
+                    const imagePath = response.image_paths && response.image_paths.length > 0 ? 
+                        `/outputs/${response.image_paths[0]}` : '';
+                    
+                    cardBody.html(`
+                        <div class="mb-3">
+                            ${imagePath ? `<img src="${imagePath}" class="img-fluid rounded" alt="${character.name}">` : `
+                                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 100%; height: 300px;">
+                                    <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                                </div>
+                            `}
+                        </div>
+                        <div class="mb-3 text-start">
+                            <p class="mb-1"><strong>ID:</strong> ${character.id.substring(0, 8)}</p>
+                            <p class="mb-1"><strong>Gender:</strong> ${character.gender || 'N/A'}</p>
+                            <p class="mb-1"><strong>Age:</strong> ${character.age_category || 'N/A'}</p>
+                            <p class="mb-1"><strong>Hair:</strong> ${character.hair_color || 'N/A'}</p>
+                            <p class="mb-1"><strong>Eyes:</strong> ${character.eye_color || 'N/A'}</p>
+                            <p class="mb-0"><strong>Style:</strong> ${character.anime_style || 'Default'}</p>
+                        </div>
+                    `);
+                } else {
+                    showError('Regeneration failed', response.error || 'Unknown error');
+                    cardBody.html(originalContent);
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Regeneration failed', error);
+                cardBody.html(originalContent);
+            }
+        });
+    }
+    
+    // Regenerate all characters
+    function regenerateAllCharacters() {
+        if (evolvedCharacters.length === 0) return;
+        
+        // Show loading for all characters
+        $('#results-loading').removeClass('d-none');
+        $('#results-container').addClass('d-none');
+        
+        // Track completed regenerations
+        let completed = 0;
+        const total = evolvedCharacters.length;
+        
+        // Function to regenerate each character
+        function regenerateNext(index) {
+            if (index >= total) {
+                // All done
+                $('#results-loading').addClass('d-none');
+                $('#results-container').removeClass('d-none');
+                return;
+            }
+            
+            const character = evolvedCharacters[index].character;
+            
+            // Send regeneration request
+            $.ajax({
+                url: '/api/character/regenerate',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    character_id: character.id,
+                    num_samples: 1
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        // Update character images
+                        evolvedCharacters[index].image_paths = response.image_paths;
+                    }
+                },
+                error: function() {
+                    // Continue even on error
+                },
+                complete: function() {
+                    completed++;
+                    
+                    // Update progress
+                    const progress = Math.round((completed / total) * 100);
+                    $('#results-loading h5').text(`Regenerating... ${progress}%`);
+                    
+                    // Process next
+                    regenerateNext(index + 1);
+                }
+            });
+        }
+        
+        // Start regeneration
+        regenerateNext(0);
+        
+        // Update display when all are done
+        $(document).ajaxStop(function() {
+            if (completed === total) {
+                displayResults();
+                $('#results-loading').addClass('d-none');
+                $('#results-container').removeClass('d-none');
+                
+                // Remove this handler
+                $(document).off('ajaxStop');
+            }
+        });
+    }
+    
+    // Save a specific character
+    function saveCharacter(index) {
+        if (index < 0 || index >= evolvedCharacters.length) return;
+        
+        const character = evolvedCharacters[index].character;
+        
+        // Disable the save button
+        const saveBtn = $(`.save-btn[data-index="${index}"]`);
+        saveBtn.attr('disabled', true);
+        saveBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>Saving');
+        
+        // Send save request
+        $.ajax({
+            url: '/api/character/save',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id
+            }),
+            success: function(response) {
+                if (response.success) {
+                    saveBtn.html('<i class="fas fa-check me-1"></i>Saved');
+                    setTimeout(() => {
+                        saveBtn.html('<i class="fas fa-save me-1"></i>Save');
+                        saveBtn.removeAttr('disabled');
+                    }, 2000);
+                } else {
+                    showError('Save failed', response.error || 'Unknown error');
+                    saveBtn.html('<i class="fas fa-save me-1"></i>Save');
+                    saveBtn.removeAttr('disabled');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Save failed', error);
+                saveBtn.html('<i class="fas fa-save me-1"></i>Save');
+                saveBtn.removeAttr('disabled');
+            }
+        });
+    }
+    
+    // Save all characters
+    function saveAllCharacters() {
+        if (evolvedCharacters.length === 0) return;
+        
+        // Disable the save all button
+        const saveAllBtn = $('#save-all-btn');
+        saveAllBtn.attr('disabled', true);
+        saveAllBtn.html('<i class="fas fa-spinner fa-spin me-1"></i>Saving');
+        
+        // Track completed saves
+        let completed = 0;
+        const total = evolvedCharacters.length;
+        
+        // Function to save each character
+        function saveNext(index) {
+            if (index >= total) {
+                // All done
+                saveAllBtn.html('<i class="fas fa-check me-1"></i>All Saved');
+                setTimeout(() => {
+                    saveAllBtn.html('<i class="fas fa-save me-1"></i>Save All');
+                    saveAllBtn.removeAttr('disabled');
+                }, 2000);
+                return;
+            }
+            
+            const character = evolvedCharacters[index].character;
+            
+            // Send save request
+            $.ajax({
+                url: '/api/character/save',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    character_id: character.id
+                }),
+                success: function() {
+                    // Update save button for this character
+                    const saveBtn = $(`.save-btn[data-index="${index}"]`);
+                    saveBtn.html('<i class="fas fa-check me-1"></i>Saved');
+                    setTimeout(() => {
+                        saveBtn.html('<i class="fas fa-save me-1"></i>Save');
+                    }, 2000);
+                },
+                complete: function() {
+                    completed++;
+                    
+                    // Process next
+                    saveNext(index + 1);
+                }
+            });
+        }
+        
+        // Start saving
+        saveNext(0);
+    }
+    
+    // Use a character as the source
+    function useAsSource(index) {
+        if (index < 0 || index >= evolvedCharacters.length) return;
+        
+        const character = evolvedCharacters[index].character;
+        
+        // Show confirmation dialog
+        if (confirm(`Use ${character.name || 'this character'} as the source for further evolution?`)) {
+            // Redirect to evolution page for this character
+            window.location.href = `/character/evolve?id=${character.id}`;
+        }
+    }
+    
+    // Clear results
+    function clearResults() {
+        // Show confirmation dialog
+        if (confirm('Clear all evolution results?')) {
+            evolvedCharacters = [];
+            $('#evolution-results').addClass('d-none');
+            $('#results-container').empty();
+        }
+    }
+    
+    // Load lineage data
+    function loadLineageData(characterId) {
+        // Show loading
+        $('#lineage-loading').removeClass('d-none');
+        $('#no-lineage').addClass('d-none');
+        $('#lineage-visualization').addClass('d-none');
+        
+        // Send lineage request
+        $.ajax({
+            url: `/api/lineage/${characterId}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.lineage && response.lineage.length > 0) {
+                    // Hide loading and show visualization
+                    $('#lineage-loading').addClass('d-none');
+                    $('#no-lineage').addClass('d-none');
+                    $('#lineage-visualization').removeClass('d-none');
+                    
+                    // Create visualization
+                    createLineageVisualization(response.lineage);
+                } else {
+                    // Show no lineage message
+                    $('#lineage-loading').addClass('d-none');
+                    $('#lineage-visualization').addClass('d-none');
+                    $('#no-lineage').removeClass('d-none');
+                }
+            },
+            error: function() {
+                // Show no lineage message on error
+                $('#lineage-loading').addClass('d-none');
+                $('#lineage-visualization').addClass('d-none');
+                $('#no-lineage').removeClass('d-none');
+            }
+        });
+    }
+    
+    // Create lineage visualization
+    function createLineageVisualization(lineage) {
+        // Get the canvas
+        const ctx = document.getElementById('lineage-chart').getContext('2d');
+        
+        // Prepare data
+        const generations = {};
+        
+        // Group by generation
+        lineage.forEach(entry => {
+            const gen = entry.generation_number || 0;
+            if (!generations[gen]) {
+                generations[gen] = [];
+            }
+            generations[gen].push(entry);
+        });
+        
+        // Get max generation
+        const maxGen = Math.max(...Object.keys(generations).map(Number));
+        
+        // Create nodes and links
+        const nodes = [];
+        const links = [];
+        
+        // Add nodes by generation
+        for (let gen = 0; gen <= maxGen; gen++) {
+            const genChars = generations[gen] || [];
+            
+            genChars.forEach((char, i) => {
+                const nodeId = nodes.length;
+                
+                // Add node
+                nodes.push({
+                    id: nodeId,
+                    characterId: char.character_id,
+                    label: char.character_id.substring(0, 4),
+                    generation: gen,
+                    fitness: char.fitness_score || 0,
+                    index: i
+                });
+                
+                // Add links to parents
+                const parentIds = char.parent_ids || [];
+                parentIds.forEach(parentId => {
+                    // Find parent node
+                    const parentNode = nodes.find(n => n.characterId === parentId);
+                    if (parentNode) {
+                        links.push({
+                            source: parentNode.id,
+                            target: nodeId
+                        });
+                    }
+                });
+            });
+        }
+        
+        // Create chart
+        const chart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Characters',
+                    data: nodes.map(node => ({
+                        x: node.generation,
+                        y: node.index,
+                        id: node.id,
+                        characterId: node.characterId,
+                        fitness: node.fitness
+                    })),
+                    backgroundColor: nodes.map(node => {
+                        // Color based on fitness
+                        const fitness = node.fitness;
+                        const r = Math.max(0, Math.min(255, 255 - fitness * 255));
+                        const g = Math.max(0, Math.min(255, fitness * 255));
+                        const b = 100;
+                        return `rgba(${r}, ${g}, ${b}, 0.8)`;
+                    }),
+                    borderColor: 'rgba(0, 0, 0, 0.5)',
+                    borderWidth: 1,
+                    pointRadius: 10,
+                    pointHoverRadius: 12
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        title: {
+                            display: true,
+                            text: 'Generation'
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return `Gen ${value}`;
+                            }
+                        }
+                    },
+                    y: {
+                        display: false
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const point = context.raw;
+                                return [
+                                    `ID: ${point.characterId.substring(0, 8)}`,
+                                    `Generation: ${point.x}`,
+                                    `Fitness: ${point.fitness.toFixed(2)}`
+                                ];
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    },
+                    annotation: {
+                        annotations: links.map(link => {
+                            const sourceNode = nodes.find(n => n.id === link.source);
+                            const targetNode = nodes.find(n => n.id === link.target);
+                            
+                            return {
+                                type: 'line',
+                                scaleID: 'x',
+                                borderColor: 'rgba(100, 100, 100, 0.5)',
+                                borderWidth: 2,
+                                value: sourceNode.generation,
+                                endValue: targetNode.generation,
+                                label: {
+                                    display: false
+                                }
+                            };
+                        })
+                    }
+                },
+                onClick: function(event, elements) {
+                    if (elements.length > 0) {
+                        const index = elements[0].index;
+                        const characterId = this.data.datasets[0].data[index].characterId;
+                        
+                        // Redirect to character view
+                        window.location.href = `/character/view/${characterId}`;
+                    }
+                }
+            }
+        });
+        
+        return chart;
+    }
+    
+    // Show success toast
+    function showSuccess(title, message) {
+        const toast = $('#toast-notification');
+        toast.removeClass('bg-danger').addClass('bg-success');
+        $('#toast-title').text(title);
+        $('#toast-body').text(message);
+        
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+    }
+    
+    // Show error toast
+    function showError(title, message) {
+        const toast = $('#toast-notification');
+        toast.removeClass('bg-success').addClass('bg-danger');
+        $('#toast-title').text(title);
+        $('#toast-body').text(message);
+        
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,1354 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="fw-bold">{{ character.name or 'Unnamed Character' }}</h1>
+            <p class="text-muted mb-0">
+                <span class="badge bg-primary me-2">Gen {{ character.generation }}</span>
+                <span class="badge bg-secondary me-2">ID: {{ character.id[:8] }}</span>
+                {% if character.creation_date %}
+                <span class="text-muted small">Created: {{ character.creation_date }}</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end d-flex justify-content-md-end align-items-center mt-3 mt-md-0">
+            <a href="/character/evolve?id={{ character.id }}" class="btn btn-primary me-2">
+                <i class="fas fa-dna me-1"></i>Evolve
+            </a>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="actionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionDropdown">
+                    <li><button class="dropdown-item regenerate-btn" type="button"><i class="fas fa-redo me-2"></i>Regenerate Image</button></li>
+                    <li><button class="dropdown-item export-sheet-btn" type="button"><i class="fas fa-id-card me-2"></i>Create Character Sheet</button></li>
+                    <li><button class="dropdown-item animate-btn" type="button"><i class="fas fa-film me-2"></i>Generate Animation</button></li>
+                    <li><button class="dropdown-item voice-btn" type="button"><i class="fas fa-microphone me-2"></i>Generate Voice</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><button class="dropdown-item export-json-btn" type="button"><i class="fas fa-file-code me-2"></i>Export JSON</button></li>
+                    <li><button class="dropdown-item delete-btn" type="button"><i class="fas fa-trash me-2"></i>Delete Character</button></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Character Image Column -->
+        <div class="col-lg-5 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div id="character-image-container" class="mb-3 position-relative">
+                        <div id="image-loading" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-white bg-opacity-75 d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <img id="character-image" src="" class="img-fluid rounded" alt="{{ character.name or 'Character' }}">
+                    </div>
+                    
+                    <div class="d-flex justify-content-center flex-wrap gap-2 mb-3" id="image-variants">
+                        <!-- Image variants will be added here by JavaScript -->
+                    </div>
+                    
+                    <div class="btn-group w-100">
+                        <button type="button" class="btn btn-outline-primary style-transfer-btn" data-bs-toggle="modal" data-bs-target="#styleTransferModal">
+                            <i class="fas fa-palette me-1"></i>Style Transfer
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary high-res-btn">
+                            <i class="fas fa-expand me-1"></i>High Resolution
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Character Details Column -->
+        <div class="col-lg-7 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <ul class="nav nav-tabs card-header-tabs" id="character-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="attributes-tab" data-bs-toggle="tab" data-bs-target="#attributes-tab-pane" type="button" role="tab" aria-controls="attributes-tab-pane" aria-selected="true">
+                                <i class="fas fa-info-circle me-1"></i>Attributes
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="appearance-tab" data-bs-toggle="tab" data-bs-target="#appearance-tab-pane" type="button" role="tab" aria-controls="appearance-tab-pane" aria-selected="false">
+                                <i class="fas fa-eye me-1"></i>Appearance
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="personality-tab" data-bs-toggle="tab" data-bs-target="#personality-tab-pane" type="button" role="tab" aria-controls="personality-tab-pane" aria-selected="false">
+                                <i class="fas fa-brain me-1"></i>Personality
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="lineage-tab" data-bs-toggle="tab" data-bs-target="#lineage-tab-pane" type="button" role="tab" aria-controls="lineage-tab-pane" aria-selected="false">
+                                <i class="fas fa-dna me-1"></i>Lineage
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="character-tabs-content">
+                        <!-- Attributes Tab -->
+                        <div class="tab-pane fade show active" id="attributes-tab-pane" role="tabpanel" aria-labelledby="attributes-tab" tabindex="0">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Basic Information</h6>
+                                    <table class="table table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <th class="ps-0 text-nowrap">Name</th>
+                                                <td class="text-end">{{ character.name or 'Unnamed' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Gender</th>
+                                                <td class="text-end">{{ character.gender or 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Age</th>
+                                                <td class="text-end">{{ character.age_category or 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Anime Style</th>
+                                                <td class="text-end">{{ character.anime_style or 'Default' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Art Style</th>
+                                                <td class="text-end">{{ character.art_style or 'Default' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Era</th>
+                                                <td class="text-end">{{ character.era or 'Modern' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Character Metadata</h6>
+                                    <table class="table table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <th class="ps-0 text-nowrap">ID</th>
+                                                <td class="text-end">{{ character.id }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Generation</th>
+                                                <td class="text-end">{{ character.generation }}</td>
+                                            </tr>
+                                            {% if character.parent_ids %}
+                                            <tr>
+                                                <th class="ps-0">Parents</th>
+                                                <td class="text-end">
+                                                    {% for parent_id in character.parent_ids %}
+                                                    <a href="/character/view/{{ parent_id }}" class="badge bg-secondary text-decoration-none">{{ parent_id[:8] }}</a>
+                                                    {% endfor %}
+                                                </td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if character.creation_date %}
+                                            <tr>
+                                                <th class="ps-0">Created</th>
+                                                <td class="text-end">{{ character.creation_date }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if character.fitness_score %}
+                                            <tr>
+                                                <th class="ps-0">Fitness Score</th>
+                                                <td class="text-end">{{ character.fitness_score }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Appearance Tab -->
+                        <div class="tab-pane fade" id="appearance-tab-pane" role="tabpanel" aria-labelledby="appearance-tab" tabindex="0">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Physical Features</h6>
+                                    <table class="table table-borderless">
+                                        <tbody>
+                                            <tr>
+                                                <th class="ps-0">Hair Color</th>
+                                                <td class="text-end">
+                                                    <span class="d-inline-block rounded me-1" style="width: 1rem; height: 1rem; background-color: '{{ character.hair_color }}';"></span>
+                                                    {{ character.hair_color or 'N/A' }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Hair Style</th>
+                                                <td class="text-end">{{ character.hair_style or 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Eye Color</th>
+                                                <td class="text-end">
+                                                    <span class="d-inline-block rounded me-1" style="width: 1rem; height: 1rem; background-color: '{{ character.eye_color }}';"></span>
+                                                    {{ character.eye_color or 'N/A' }}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Skin Tone</th>
+                                                <td class="text-end">{{ character.skin_tone or 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Height</th>
+                                                <td class="text-end">{{ character.height or 'N/A' }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th class="ps-0">Body Type</th>
+                                                <td class="text-end">{{ character.body_type or 'N/A' }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Distinctive Features</h6>
+                                    {% if character.distinctive_features %}
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        {% for feature in character.distinctive_features %}
+                                        <span class="badge bg-secondary py-2 px-3">{{ feature }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No distinctive features defined</p>
+                                    {% endif %}
+                                    
+                                    <h6 class="fw-bold mb-3 mt-4">Style Information</h6>
+                                    <div class="mb-3">
+                                        <div class="row mb-2">
+                                            <div class="col-4">Anime Style:</div>
+                                            <div class="col-8 text-end">{{ character.anime_style or 'Default' }}</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-4">Art Style:</div>
+                                            <div class="col-8 text-end">{{ character.art_style or 'Default' }}</div>
+                                        </div>
+                                        <div class="row mb-2">
+                                            <div class="col-4">Era:</div>
+                                            <div class="col-8 text-end">{{ character.era or 'Modern' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Personality Tab -->
+                        <div class="tab-pane fade" id="personality-tab-pane" role="tabpanel" aria-labelledby="personality-tab" tabindex="0">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Personality Traits</h6>
+                                    {% if character.personality %}
+                                    <div class="d-flex flex-wrap gap-2 mb-3">
+                                        {% for trait in character.personality %}
+                                        <span class="badge bg-primary py-2 px-3">{{ trait }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No personality traits defined</p>
+                                    {% endif %}
+                                    
+                                    <h6 class="fw-bold mb-3 mt-4">Character Archetype</h6>
+                                    {% if character.archetype %}
+                                    <div class="mb-3">
+                                        <span class="badge bg-info py-2 px-3">{{ character.archetype }}</span>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted">No archetype defined</p>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold mb-3">Background & Motivation</h6>
+                                    {% if character.background %}
+                                    <p>{{ character.background }}</p>
+                                    {% else %}
+                                    <p class="text-muted">No background defined</p>
+                                    {% endif %}
+                                    
+                                    {% if character.motivation %}
+                                    <h6 class="fw-bold mb-2 mt-4">Motivation</h6>
+                                    <p>{{ character.motivation }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lineage Tab -->
+                        <div class="tab-pane fade" id="lineage-tab-pane" role="tabpanel" aria-labelledby="lineage-tab" tabindex="0">
+                            <div id="lineage-loading" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <h5 class="mb-0">Loading lineage data...</h5>
+                            </div>
+                            
+                            <div id="lineage-content" class="d-none">
+                                <div id="lineage-graph" class="mb-4">
+                                    <!-- Lineage visualization will be added here by JavaScript -->
+                                </div>
+                                
+                                <div id="ancestors-list">
+                                    <h6 class="fw-bold mb-3">Ancestor Characters</h6>
+                                    <!-- Ancestor list will be added here by JavaScript -->
+                                </div>
+                            </div>
+                            
+                            <div id="no-lineage" class="text-center py-5 d-none">
+                                <i class="fas fa-family-tree fa-3x text-muted mb-3"></i>
+                                <h5 class="mb-0">No lineage data available</h5>
+                                <p class="text-muted">This character has no recorded ancestry</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multimodal Outputs Section -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">Multimodal Outputs</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-pills mb-3" id="multimodal-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="animations-tab" data-bs-toggle="pill" data-bs-target="#animations-tab-pane" type="button" role="tab" aria-controls="animations-tab-pane" aria-selected="true">
+                                <i class="fas fa-film me-1"></i>Animations
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="voice-tab" data-bs-toggle="pill" data-bs-target="#voice-tab-pane" type="button" role="tab" aria-controls="voice-tab-pane" aria-selected="false">
+                                <i class="fas fa-microphone me-1"></i>Voice
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="model-tab" data-bs-toggle="pill" data-bs-target="#model-tab-pane" type="button" role="tab" aria-controls="model-tab-pane" aria-selected="false">
+                                <i class="fas fa-cube me-1"></i>3D Model
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="multimodal-tabs-content">
+                        <!-- Animations Tab -->
+                        <div class="tab-pane fade show active" id="animations-tab-pane" role="tabpanel" aria-labelledby="animations-tab" tabindex="0">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="animation-container mb-3">
+                                        <div id="animation-placeholder" class="text-center p-5 bg-light rounded">
+                                            <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                                            <h5 class="mb-2">No animation available</h5>
+                                            <p class="text-muted mb-0">Generate an animation to see it here</p>
+                                        </div>
+                                        <div id="animation-content" class="text-center d-none">
+                                            <!-- Animation will be added here by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-transparent py-3">
+                                            <h6 class="mb-0 fw-bold">Animation Settings</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="animation-form">
+                                                <div class="mb-3">
+                                                    <label for="animation-type" class="form-label">Animation Type</label>
+                                                    <select class="form-select" id="animation-type">
+                                                        <option value="default" selected>Default Motion</option>
+                                                        <option value="breathing">Breathing Effect</option>
+                                                        <option value="pan">Pan Motion</option>
+                                                        <option value="zoom">Zoom Effect</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="animation-duration" class="form-label">Duration (seconds)</label>
+                                                    <input type="range" class="form-range" id="animation-duration" min="1" max="10" step="0.5" value="3">
+                                                    <div class="d-flex justify-content-between">
+                                                        <small>1s</small>
+                                                        <small id="duration-value">3s</small>
+                                                        <small>10s</small>
+                                                    </div>
+                                                </div>
+                                                <div class="d-grid">
+                                                    <button type="button" id="generate-animation-btn" class="btn btn-primary">
+                                                        <i class="fas fa-film me-1"></i>Generate Animation
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Voice Tab -->
+                        <div class="tab-pane fade" id="voice-tab-pane" role="tabpanel" aria-labelledby="voice-tab" tabindex="0">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="voice-container mb-3">
+                                        <div id="voice-placeholder" class="text-center p-5 bg-light rounded">
+                                            <i class="fas fa-microphone fa-3x text-muted mb-3"></i>
+                                            <h5 class="mb-2">No voice clip available</h5>
+                                            <p class="text-muted mb-0">Generate a voice clip to hear it here</p>
+                                        </div>
+                                        <div id="voice-content" class="text-center p-4 d-none">
+                                            <!-- Voice player will be added here by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-header bg-transparent py-3">
+                                            <h6 class="mb-0 fw-bold">Voice Settings</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <form id="voice-form">
+                                                <div class="mb-3">
+                                                    <label for="voice-preset" class="form-label">Voice Type</label>
+                                                    <select class="form-select" id="voice-preset">
+                                                        <option value="female_teen" selected>Female Teen</option>
+                                                        <option value="female_adult">Female Adult</option>
+                                                        <option value="male_teen">Male Teen</option>
+                                                        <option value="male_adult">Male Adult</option>
+                                                        <option value="child">Child</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="voice-text" class="form-label">Text to Speak</label>
+                                                    <textarea class="form-control" id="voice-text" rows="3" placeholder="Enter text for the character to say..."></textarea>
+                                                </div>
+                                                <div class="d-grid">
+                                                    <button type="button" id="generate-voice-btn" class="btn btn-primary">
+                                                        <i class="fas fa-microphone me-1"></i>Generate Voice
+                                                    </button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 3D Model Tab -->
+                        <div class="tab-pane fade" id="model-tab-pane" role="tabpanel" aria-labelledby="model-tab" tabindex="0">
+                            <div class="text-center py-5">
+                                <i class="fas fa-cube fa-3x text-muted mb-3"></i>
+                                <h5 class="mb-2">3D Model Generation</h5>
+                                <p class="text-muted mb-4">Convert your character into a 3D model (Coming Soon)</p>
+                                <button type="button" class="btn btn-outline-primary" disabled>
+                                    <i class="fas fa-cube me-1"></i>Generate 3D Model
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Style Transfer Modal -->
+<div class="modal fade" id="styleTransferModal" tabindex="-1" aria-labelledby="styleTransferModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="styleTransferModalLabel">Apply Style Transfer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Original Character</label>
+                        <div class="text-center">
+                            <img id="style-transfer-original" src="" class="img-fluid rounded mb-2" alt="Original">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Preview (Processing...)</label>
+                        <div class="text-center" id="style-transfer-preview-container">
+                            <div id="style-transfer-loading" class="text-center p-5 bg-light rounded">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 mb-0">Processing...</p>
+                            </div>
+                            <img id="style-transfer-preview" src="" class="img-fluid rounded mb-2 d-none" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="style-select" class="form-label">Select Style</label>
+                    <select class="form-select" id="style-select">
+                        <option value="" selected disabled>Choose a style...</option>
+                        <option value="shonen">Shonen Anime</option>
+                        <option value="shojo">Shojo Anime</option>
+                        <option value="seinen">Seinen Anime</option>
+                        <option value="isekai">Isekai Anime</option>
+                        <option value="mecha">Mecha Anime</option>
+                        <option value="chibi">Chibi Style</option>
+                        <option value="90s_anime">90s Anime</option>
+                        <option value="modern_anime">Modern Anime</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="style-strength" class="form-label">Style Strength: <span id="style-strength-value">0.7</span></label>
+                    <input type="range" class="form-range" id="style-strength" min="0.1" max="1.0" step="0.1" value="0.7">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="apply-style-btn">Apply Style</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Voice Modal -->
+<div class="modal fade" id="generateVoiceModal" tabindex="-1" aria-labelledby="generateVoiceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="generateVoiceModalLabel">Generate Character Voice</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="voice-modal-form">
+                    <div class="mb-3">
+                        <label for="voice-modal-preset" class="form-label">Voice Type</label>
+                        <select class="form-select" id="voice-modal-preset">
+                            <option value="female_teen" selected>Female Teen</option>
+                            <option value="female_adult">Female Adult</option>
+                            <option value="male_teen">Male Teen</option>
+                            <option value="male_adult">Male Adult</option>
+                            <option value="child">Child</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="voice-modal-text" class="form-label">Text to Speak</label>
+                        <textarea class="form-control" id="voice-modal-text" rows="4" placeholder="Enter text for the character to say..."></textarea>
+                    </div>
+                </form>
+                <div id="voice-modal-loading" class="text-center py-3 d-none">
+                    <div class="spinner-border text-primary mb-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mb-0">Generating voice...</p>
+                </div>
+                <div id="voice-modal-player" class="text-center py-3 d-none">
+                    <!-- Voice player will be added here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="generate-voice-modal-btn">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Character data
+    let character = JSON.parse('{{ character_json|safe }}');
+    let characterImages = [];
+    let selectedImageIndex = 0;
+    
+    $(document).ready(function() {
+        // Load character images
+        loadCharacterImages();
+        
+        // Load lineage data
+        loadLineageData();
+        
+        // Animation duration slider
+        $('#animation-duration').on('input', function() {
+            $('#duration-value').text($(this).val() + 's');
+        });
+        
+        // Style strength slider
+        $('#style-strength').on('input', function() {
+            $('#style-strength-value').text($(this).val());
+        });
+        
+        // Regenerate button
+        $('.regenerate-btn').click(function() {
+            regenerateCharacterImage();
+        });
+        
+        // Style transfer button
+        $('#style-select').change(function() {
+            previewStyleTransfer();
+        });
+        
+        // Apply style button
+        $('#apply-style-btn').click(function() {
+            applyStyleTransfer();
+        });
+        
+        // High resolution button
+        $('.high-res-btn').click(function() {
+            generateHighResolution();
+        });
+        
+        // Character sheet button
+        $('.export-sheet-btn').click(function() {
+            generateCharacterSheet();
+        });
+        
+        // Animation button
+        $('.animate-btn').click(function() {
+            // Show the animations tab
+            $('#multimodal-tabs button[data-bs-target="#animations-tab-pane"]').tab('show');
+            // Scroll to the animations section
+            $('html, body').animate({
+                scrollTop: $('#multimodal-tabs').offset().top - 100
+            }, 500);
+        });
+        
+        // Voice button
+        $('.voice-btn').click(function() {
+            $('#generateVoiceModal').modal('show');
+        });
+        
+        // Generate animation button
+        $('#generate-animation-btn').click(function() {
+            generateAnimation();
+        });
+        
+        // Generate voice button
+        $('#generate-voice-btn').click(function() {
+            generateVoice();
+        });
+        
+        // Generate voice modal button
+        $('#generate-voice-modal-btn').click(function() {
+            generateVoiceModal();
+        });
+        
+        // Export JSON button
+        $('.export-json-btn').click(function() {
+            exportJSON();
+        });
+        
+        // Delete button
+        $('.delete-btn').click(function() {
+            deleteCharacter();
+        });
+    });
+    
+    // Load character images
+    function loadCharacterImages() {
+        // Show loading indicator
+        $('#image-loading').removeClass('d-none');
+        
+        $.ajax({
+            url: `/api/character/${character.id}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    // Update character data
+                    character = response.character;
+                    
+                    // Store image paths
+                    characterImages = response.image_paths || [];
+                    
+                    // Update image display
+                    updateImageDisplay();
+                } else {
+                    showError('Error', 'Failed to load character images');
+                }
+            },
+            error: function() {
+                showError('Error', 'Failed to load character images');
+            },
+            complete: function() {
+                $('#image-loading').addClass('d-none');
+            }
+        });
+    }
+    
+    // Update image display
+    function updateImageDisplay() {
+        if (characterImages.length > 0) {
+            // Set main image
+            $('#character-image').attr('src', `/outputs/${characterImages[selectedImageIndex]}`);
+            
+            // Update style transfer original
+            $('#style-transfer-original').attr('src', `/outputs/${characterImages[selectedImageIndex]}`);
+            
+            // Clear variants container
+            $('#image-variants').empty();
+            
+            // Add variants
+            characterImages.forEach((path, index) => {
+                const variant = $(`
+                    <div class="variant-image${index === selectedImageIndex ? ' border border-3 border-primary' : ''}">
+                        <img src="/outputs/${path}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" alt="Variant ${index + 1}">
+                    </div>
+                `);
+                
+                // Add click event to select this variant
+                variant.find('img').click(function() {
+                    selectImageVariant(index);
+                });
+                
+                $('#image-variants').append(variant);
+            });
+        } else {
+            // No images, show placeholder
+            $('#character-image').attr('src', '');
+            $('#character-image-container').html(`
+                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 512px;">
+                    <div class="text-center">
+                        <i class="fas fa-user-circle fa-5x text-secondary mb-3"></i>
+                        <p class="mb-0">No image available</p>
+                    </div>
+                </div>
+            `);
+            
+            $('#image-variants').empty();
+        }
+    }
+    
+    // Select image variant
+    function selectImageVariant(index) {
+        selectedImageIndex = index;
+        
+        // Update main image
+        $('#character-image').attr('src', `/outputs/${characterImages[selectedImageIndex]}`);
+        
+        // Update style transfer original
+        $('#style-transfer-original').attr('src', `/outputs/${characterImages[selectedImageIndex]}`);
+        
+        // Update selection indicator
+        $('.variant-image').removeClass('border border-3 border-primary');
+        $(`.variant-image:eq(${index})`).addClass('border border-3 border-primary');
+    }
+    
+    // Regenerate character image
+    function regenerateCharacterImage() {
+        // Show loading indicator
+        $('#image-loading').removeClass('d-none');
+        
+        $.ajax({
+            url: '/api/character/regenerate',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                num_samples: 4
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Update images
+                    characterImages = response.image_paths || [];
+                    selectedImageIndex = 0;
+                    
+                    // Update display
+                    updateImageDisplay();
+                } else {
+                    showError('Regeneration failed', response.error || 'Unknown error');
+                }
+            },
+            error: function() {
+                showError('Regeneration failed', 'Failed to regenerate character image');
+            },
+            complete: function() {
+                $('#image-loading').addClass('d-none');
+            }
+        });
+    }
+    
+    // Preview style transfer
+    function previewStyleTransfer() {
+        const style = $('#style-select').val();
+        
+        if (!style || characterImages.length === 0) {
+            return;
+        }
+        
+        // Show loading indicator
+        $('#style-transfer-preview').addClass('d-none');
+        $('#style-transfer-loading').removeClass('d-none');
+        
+        // Get style strength
+        const strength = parseFloat($('#style-strength').val());
+        
+        // Send style transfer request
+        $.ajax({
+            url: '/api/style_transfer/preview',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                image_path: characterImages[selectedImageIndex],
+                style: style,
+                strength: strength
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Display preview
+                    $('#style-transfer-preview').attr('src', response.preview_data).removeClass('d-none');
+                    $('#style-transfer-loading').addClass('d-none');
+                } else {
+                    showError('Style Transfer', response.error || 'Preview generation failed');
+                    $('#style-transfer-loading').addClass('d-none');
+                }
+            },
+            error: function() {
+                showError('Style Transfer', 'Preview generation failed');
+                $('#style-transfer-loading').addClass('d-none');
+            }
+        });
+    }
+    
+    // Apply style transfer
+    function applyStyleTransfer() {
+        const style = $('#style-select').val();
+        
+        if (!style || characterImages.length === 0) {
+            return;
+        }
+        
+        // Get style strength
+        const strength = parseFloat($('#style-strength').val());
+        
+        // Close modal
+        $('#styleTransferModal').modal('hide');
+        
+        // Show loading indicator
+        $('#image-loading').removeClass('d-none');
+        
+        // Send style transfer request
+        $.ajax({
+            url: '/api/style_transfer/apply',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                image_path: characterImages[selectedImageIndex],
+                style: style,
+                strength: strength
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Add the styled image to the variants
+                    characterImages.unshift(response.image_path);
+                    selectedImageIndex = 0;
+                    
+                    // Update display
+                    updateImageDisplay();
+                } else {
+                    showError('Style Transfer', response.error || 'Failed to apply style');
+                }
+            },
+            error: function() {
+                showError('Style Transfer', 'Failed to apply style');
+            },
+            complete: function() {
+                $('#image-loading').addClass('d-none');
+            }
+        });
+    }
+    
+    // Generate high resolution image
+    function generateHighResolution() {
+        if (characterImages.length === 0) {
+            showError('High Resolution', 'No image available to enhance');
+            return;
+        }
+        
+        // Show loading indicator
+        $('#image-loading').removeClass('d-none');
+        
+        // Send high resolution request
+        $.ajax({
+            url: '/api/high_resolution',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                image_path: characterImages[selectedImageIndex]
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Add the high-res image to the variants
+                    characterImages.unshift(response.image_path);
+                    selectedImageIndex = 0;
+                    
+                    // Update display
+                    updateImageDisplay();
+                    
+                    showSuccess('High Resolution', 'Generated high resolution image');
+                } else {
+                    showError('High Resolution', response.error || 'Failed to generate high resolution image');
+                }
+            },
+            error: function() {
+                showError('High Resolution', 'Failed to generate high resolution image');
+            },
+            complete: function() {
+                $('#image-loading').addClass('d-none');
+            }
+        });
+    }
+    
+    // Generate character sheet
+    function generateCharacterSheet() {
+        if (characterImages.length === 0) {
+            showError('Character Sheet', 'No images available to create sheet');
+            return;
+        }
+        
+        // Show loading overlay
+        $('#loading-overlay').removeClass('d-none');
+        $('#loading-message').text('Generating character sheet...');
+        
+        // Send character sheet request
+        $.ajax({
+            url: '/api/character_sheet',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Hide loading overlay
+                    $('#loading-overlay').addClass('d-none');
+                    
+                    // Open the character sheet in a new window
+                    window.open(`/outputs/${response.sheet_path}`, '_blank');
+                } else {
+                    showError('Character Sheet', response.error || 'Failed to generate character sheet');
+                    $('#loading-overlay').addClass('d-none');
+                }
+            },
+            error: function() {
+                showError('Character Sheet', 'Failed to generate character sheet');
+                $('#loading-overlay').addClass('d-none');
+            }
+        });
+    }
+    
+    // Load lineage data
+    function loadLineageData() {
+        // Show loading indicator
+        $('#lineage-loading').removeClass('d-none');
+        $('#lineage-content').addClass('d-none');
+        $('#no-lineage').addClass('d-none');
+        
+        $.ajax({
+            url: `/api/lineage/${character.id}`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.lineage && response.lineage.length > 0) {
+                    // Create lineage visualization
+                    createLineageVisualization(response.lineage);
+                    
+                    // Create ancestors list
+                    createAncestorsList(response.lineage);
+                    
+                    // Show content
+                    $('#lineage-loading').addClass('d-none');
+                    $('#lineage-content').removeClass('d-none');
+                    $('#no-lineage').addClass('d-none');
+                } else {
+                    // No lineage data
+                    $('#lineage-loading').addClass('d-none');
+                    $('#lineage-content').addClass('d-none');
+                    $('#no-lineage').removeClass('d-none');
+                }
+            },
+            error: function() {
+                // Error loading lineage
+                $('#lineage-loading').addClass('d-none');
+                $('#lineage-content').addClass('d-none');
+                $('#no-lineage').removeClass('d-none');
+            }
+        });
+    }
+    
+    // Create lineage visualization
+    function createLineageVisualization(lineage) {
+        // Simple lineage visualization for now
+        const container = $('#lineage-graph');
+        container.empty();
+        
+        // Group by generation
+        const generations = {};
+        lineage.forEach(entry => {
+            const gen = entry.generation_number || 0;
+            if (!generations[gen]) {
+                generations[gen] = [];
+            }
+            generations[gen].push(entry);
+        });
+        
+        // Create visualization
+        let html = `<div class="lineage-tree">`;
+        
+        // Get max generation
+        const maxGen = Math.max(...Object.keys(generations).map(Number));
+        
+        // Create generation rows
+        for (let gen = 0; gen <= maxGen; gen++) {
+            const genEntries = generations[gen] || [];
+            
+            html += `<div class="lineage-generation mb-3">`;
+            html += `<div class="generation-label mb-2">Generation ${gen}</div>`;
+            html += `<div class="d-flex flex-wrap justify-content-center gap-3">`;
+            
+            genEntries.forEach(entry => {
+                const isCurrentChar = entry.character_id === character.id;
+                const borderClass = isCurrentChar ? 'border-primary' : 'border-secondary';
+                const bgClass = isCurrentChar ? 'bg-primary bg-opacity-10' : '';
+                
+                html += `
+                    <div class="lineage-node ${bgClass} p-2 border ${borderClass} rounded">
+                        <div class="node-id mb-1">${entry.character_id.substring(0, 8)}</div>
+                        <div class="node-links">
+                            <a href="/character/view/${entry.character_id}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `</div></div>`;
+        }
+        
+        html += `</div>`;
+        container.html(html);
+    }
+    
+    // Create ancestors list
+    function createAncestorsList(lineage) {
+        const container = $('#ancestors-list');
+        
+        // Remove current character from lineage
+        const ancestors = lineage.filter(entry => entry.character_id !== character.id);
+        
+        if (ancestors.length === 0) {
+            container.html(`<p class="text-muted">No ancestor data available</p>`);
+            return;
+        }
+        
+        // Sort by generation
+        ancestors.sort((a, b) => a.generation_number - b.generation_number);
+        
+        let html = `<div class="list-group">`;
+        
+        ancestors.forEach(entry => {
+            html += `
+                <a href="/character/view/${entry.character_id}" class="list-group-item list-group-item-action">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-primary me-2">Gen ${entry.generation_number}</span>
+                            <span class="me-2">ID: ${entry.character_id.substring(0, 8)}</span>
+                            ${entry.parent_ids && entry.parent_ids.length > 0 ? 
+                                `<small class="text-muted">Parents: ${entry.parent_ids.map(p => p.substring(0, 8)).join(', ')}</small>` : 
+                                ''}
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </a>
+            `;
+        });
+        
+        html += `</div>`;
+        container.html(html);
+    }
+    
+    // Generate animation
+    function generateAnimation() {
+        if (characterImages.length === 0) {
+            showError('Animation', 'No character image available');
+            return;
+        }
+        
+        // Get animation settings
+        const animationType = $('#animation-type').val();
+        const duration = parseFloat($('#animation-duration').val());
+        
+        // Show loading message
+        $('#animation-placeholder').html(`
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-0">Generating animation...</h5>
+                <p class="text-muted">This may take a moment</p>
+            </div>
+        `).removeClass('d-none');
+        $('#animation-content').addClass('d-none');
+        
+        // Send animation request
+        $.ajax({
+            url: '/api/animation',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                image_path: characterImages[selectedImageIndex],
+                motion_type: animationType,
+                duration: duration,
+                format: 'mp4'
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Display animation
+                    $('#animation-placeholder').addClass('d-none');
+                    $('#animation-content').html(`
+                        <video controls autoplay loop class="img-fluid rounded">
+                            <source src="/outputs/${response.animation_path}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    `).removeClass('d-none');
+                    
+                    showSuccess('Animation', 'Animation generated successfully');
+                } else {
+                    showError('Animation', response.error || 'Failed to generate animation');
+                    $('#animation-placeholder').html(`
+                        <div class="text-center p-5 bg-light rounded">
+                            <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                            <h5 class="mb-2">Animation generation failed</h5>
+                            <p class="text-muted mb-0">Please try again</p>
+                        </div>
+                    `);
+                }
+            },
+            error: function() {
+                showError('Animation', 'Failed to generate animation');
+                $('#animation-placeholder').html(`
+                    <div class="text-center p-5 bg-light rounded">
+                        <i class="fas fa-film fa-3x text-muted mb-3"></i>
+                        <h5 class="mb-2">Animation generation failed</h5>
+                        <p class="text-muted mb-0">Please try again</p>
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    // Generate voice
+    function generateVoice() {
+        // Get voice settings
+        const voicePreset = $('#voice-preset').val();
+        const voiceText = $('#voice-text').val().trim();
+        
+        if (!voiceText) {
+            showError('Voice', 'Please enter text to speak');
+            return;
+        }
+        
+        // Show loading message
+        $('#voice-placeholder').html(`
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5 class="mb-0">Generating voice...</h5>
+                <p class="text-muted">This may take a moment</p>
+            </div>
+        `).removeClass('d-none');
+        $('#voice-content').addClass('d-none');
+        
+        // Send voice request
+        $.ajax({
+            url: '/api/voice',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                text: voiceText,
+                preset: voicePreset,
+                format: 'mp3'
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Display voice player
+                    $('#voice-placeholder').addClass('d-none');
+                    $('#voice-content').html(`
+                        <div class="p-3 border rounded">
+                            <p class="mb-3 text-start"><em>"${voiceText}"</em></p>
+                            <audio controls class="w-100">
+                                <source src="/outputs/${response.voice_path}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    `).removeClass('d-none');
+                    
+                    showSuccess('Voice', 'Voice generated successfully');
+                } else {
+                    showError('Voice', response.error || 'Failed to generate voice');
+                    $('#voice-placeholder').html(`
+                        <div class="text-center p-5 bg-light rounded">
+                            <i class="fas fa-microphone fa-3x text-muted mb-3"></i>
+                            <h5 class="mb-2">Voice generation failed</h5>
+                            <p class="text-muted mb-0">Please try again</p>
+                        </div>
+                    `);
+                }
+            },
+            error: function() {
+                showError('Voice', 'Failed to generate voice');
+                $('#voice-placeholder').html(`
+                    <div class="text-center p-5 bg-light rounded">
+                        <i class="fas fa-microphone fa-3x text-muted mb-3"></i>
+                        <h5 class="mb-2">Voice generation failed</h5>
+                        <p class="text-muted mb-0">Please try again</p>
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    // Generate voice from modal
+    function generateVoiceModal() {
+        // Get voice settings
+        const voicePreset = $('#voice-modal-preset').val();
+        const voiceText = $('#voice-modal-text').val().trim();
+        
+        if (!voiceText) {
+            showError('Voice', 'Please enter text to speak');
+            return;
+        }
+        
+        // Show loading message
+        $('#voice-modal-loading').removeClass('d-none');
+        $('#voice-modal-player').addClass('d-none');
+        $('#generate-voice-modal-btn').attr('disabled', true);
+        
+        // Send voice request
+        $.ajax({
+            url: '/api/voice',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: character.id,
+                text: voiceText,
+                preset: voicePreset,
+                format: 'mp3'
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Display voice player
+                    $('#voice-modal-loading').addClass('d-none');
+                    $('#voice-modal-player').html(`
+                        <div class="p-3 border rounded">
+                            <p class="mb-3 text-start"><em>"${voiceText}"</em></p>
+                            <audio controls autoplay class="w-100">
+                                <source src="/outputs/${response.voice_path}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    `).removeClass('d-none');
+                    
+                    // Also update main voice player
+                    $('#voice-placeholder').addClass('d-none');
+                    $('#voice-content').html(`
+                        <div class="p-3 border rounded">
+                            <p class="mb-3 text-start"><em>"${voiceText}"</em></p>
+                            <audio controls class="w-100">
+                                <source src="/outputs/${response.voice_path}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    `).removeClass('d-none');
+                    
+                    // Reset button
+                    $('#generate-voice-modal-btn').removeAttr('disabled');
+                } else {
+                    showError('Voice', response.error || 'Failed to generate voice');
+                    $('#voice-modal-loading').addClass('d-none');
+                    $('#generate-voice-modal-btn').removeAttr('disabled');
+                }
+            },
+            error: function() {
+                showError('Voice', 'Failed to generate voice');
+                $('#voice-modal-loading').addClass('d-none');
+                $('#generate-voice-modal-btn').removeAttr('disabled');
+            }
+        });
+    }
+    
+    // Export character as JSON
+    function exportJSON() {
+        // Create and download JSON file
+        const dataStr = JSON.stringify(character, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportName = `${character.name || 'character'}_${character.id.substring(0, 8)}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportName);
+        linkElement.click();
+    }
+    
+    // Delete character
+    function deleteCharacter() {
+        if (confirm(`Are you sure you want to delete character "${character.name || 'Unnamed'}"? This cannot be undone.`)) {
+            // Send delete request
+            $.ajax({
+                url: `/api/character/${character.id}`,
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        showSuccess('Delete', 'Character deleted successfully');
+                        // Redirect to gallery
+                        setTimeout(() => {
+                            window.location.href = '/gallery';
+                        }, 1500);
+                    } else {
+                        showError('Delete', response.error || 'Failed to delete character');
+                    }
+                },
+                error: function() {
+                    showError('Delete', 'Failed to delete character');
+                }
+            });
+        }
+    }
+    
+    // Show success toast
+    function showSuccess(title, message) {
+        const toast = $('#toast-notification');
+        toast.removeClass('bg-danger').addClass('bg-success');
+        $('#toast-title').text(title);
+        $('#toast-body').text(message);
+        
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+    }
+    
+    // Show error toast
+    function showError(title, message) {
+        const toast = $('#toast-notification');
+        toast.removeClass('bg-success').addClass('bg-danger');
+        $('#toast-title').text(title);
+        $('#toast-body').text(message);
+        
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+    }
+</script>
+{% endblock %}

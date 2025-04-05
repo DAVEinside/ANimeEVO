@@ -1,0 +1,86 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.env
+.venv
+env.bak/
+venv.bak/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Model files and outputs
+models/*
+!models/.gitkeep
+outputs/*
+!outputs/.gitkeep
+data/character_templates/*
+!data/character_templates/.gitkeep
+data/style_references/*
+!data/style_references/.gitkeep
+data/user_creations/*
+!data/user_creations/.gitkeep
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Cache directories
+cache/
+.cache/
+temp/
+.temp/
+
+# Log files
+*.log
+logs/
+.logs/
+
+# Weights & Biases
+wandb/
+
+# Custom embeddings and weights
+embeddings/
+weights/
+checkpoints/
+
+# Generated files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.wav
+*.mp3
+*.obj
+*.fbx
+*.glb
+*.gltf

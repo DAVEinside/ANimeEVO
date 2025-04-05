@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="row align-items-center py-5">
+        <div class="col-lg-6">
+            <h1 class="display-4 fw-bold mb-4">Anime Character Evolution</h1>
+            <p class="lead mb-4">
+                Create, evolve, and animate unique anime characters using advanced AI diffusion models and genetic algorithms.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="/character/create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-magic me-2"></i>Create Character
+                </a>
+                <a href="/gallery" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-images me-2"></i>View Gallery
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-6 mt-4 mt-lg-0 text-center">
+            <img src="{{ url_for('static', filename='img/hero-image.png') }}" class="img-fluid rounded-3 shadow" alt="Anime Character Evolution">
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-4">
+            <h2 class="fw-bold">Key Features</h2>
+            <p class="text-muted">Discover what our AI-powered system can do</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">AI Generation</h5>
+                    <p class="card-text">
+                        Generate high-quality anime characters using optimized diffusion models with fine-tuned anime aesthetics.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-dna"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Character Evolution</h5>
+                    <p class="card-text">
+                        Evolve characters over generations using genetic algorithms with trait inheritance and mutation.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Multi-modal Output</h5>
+                    <p class="card-text">
+                        Create 2D images, animations, and voice lines for your characters with our comprehensive system.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Characters Section -->
+    {% if active_characters %}
+    <div class="row py-5">
+        <div class="col-12 mb-4">
+            <h2 class="fw-bold">Your Active Characters</h2>
+            <p class="text-muted">Continue working with your recently created characters</p>
+        </div>
+        
+        {% for character in active_characters %}
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                {% if character.image_path %}
+                <img src="/outputs/{{ character.image_path }}" class="card-img-top character-thumbnail" alt="{{ character.name }}">
+                {% else %}
+                <div class="placeholder-image bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-user-circle fa-4x text-secondary"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ character.name }}</h5>
+                    <p class="card-text">
+                        <small class="text-muted">ID: {{ character.id[:8] }}</small>
+                    </p>
+                    <div class="d-flex gap-2">
+                        <a href="/character/view/{{ character.id }}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye me-1"></i>View
+                        </a>
+                        <a href="/character/evolve?id={{ character.id }}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-dna me-1"></i>Evolve
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Getting Started Section -->
+    <div class="row py-5">
+        <div class="col-12 text-center mb-4">
+            <h2 class="fw-bold">Getting Started</h2>
+            <p class="text-muted">Follow these steps to create your first anime character</p>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="step-number bg-primary rounded-circle mb-3">1</div>
+                    <h5 class="card-title fw-bold">Create Character</h5>
+                    <p class="card-text">
+                        Define attributes or generate a random anime character as your starting point.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="step-number bg-primary rounded-circle mb-3">2</div>
+                    <h5 class="card-title fw-bold">Customize</h5>
+                    <p class="card-text">
+                        Fine-tune appearance, personality traits, and visual style to your liking.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="step-number bg-primary rounded-circle mb-3">3</div>
+                    <h5 class="card-title fw-bold">Evolve</h5>
+                    <p class="card-text">
+                        Create new generations with enhanced traits or combine multiple characters.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="step-number bg-primary rounded-circle mb-3">4</div>
+                    <h5 class="card-title fw-bold">Export</h5>
+                    <p class="card-text">
+                        Save and export your characters as images, animations, or voice clips.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Check GPU status
+    $(document).ready(function() {
+        $.get('/api/system/status', function(data) {
+            if (data.success) {
+                if (data.gpu_available) {
+                    $('#gpu-status').html('GPU: Active <i class="fas fa-check-circle text-success"></i>');
+                } else {
+                    $('#gpu-status').html('GPU: Not Available <i class="fas fa-exclamation-circle text-warning"></i>');
+                }
+            } else {
+                $('#gpu-status').html('GPU: Unknown <i class="fas fa-question-circle text-warning"></i>');
+            }
+        }).fail(function() {
+            $('#gpu-status').html('GPU: Unknown <i class="fas fa-question-circle text-warning"></i>');
+        });
+    });
+</script>
+{% endblock %}

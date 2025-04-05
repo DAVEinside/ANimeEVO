@@ -1,0 +1,740 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block head_extra %}
+<!-- Color picker CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="fw-bold">Create Character</h1>
+            <p class="text-muted">Define attributes to generate your anime character or create a random one</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Character Attributes Form -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0 fw-bold">Character Attributes</h5>
+                </div>
+                <div class="card-body">
+                    <form id="character-form">
+                        <!-- Basic Information -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">Basic Information</h6>
+                            
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Character Name</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Enter name (optional)">
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <select class="form-select" id="gender" name="gender">
+                                        <option value="female">Female</option>
+                                        <option value="male">Male</option>
+                                        <option value="androgynous">Androgynous</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label for="age_category" class="form-label">Age</label>
+                                    <select class="form-select" id="age_category" name="age_category">
+                                        <option value="child">Child</option>
+                                        <option value="teen" selected>Teen</option>
+                                        <option value="young adult">Young Adult</option>
+                                        <option value="adult">Adult</option>
+                                        <option value="elderly">Elderly</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Appearance -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">Appearance</h6>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-6">
+                                    <label for="hair_color" class="form-label">Hair Color</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="hair_color" name="hair_color" value="blue">
+                                        <button class="btn btn-outline-secondary color-picker-btn" type="button" data-target="hair_color">
+                                            <i class="fas fa-palette"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <label for="eye_color" class="form-label">Eye Color</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="eye_color" name="eye_color" value="green">
+                                        <button class="btn btn-outline-secondary color-picker-btn" type="button" data-target="eye_color">
+                                            <i class="fas fa-palette"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label for="skin_tone" class="form-label">Skin Tone</label>
+                                    <select class="form-select" id="skin_tone" name="skin_tone">
+                                        <option value="fair" selected>Fair</option>
+                                        <option value="pale">Pale</option>
+                                        <option value="tan">Tan</option>
+                                        <option value="dark">Dark</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label for="body_type" class="form-label">Body Type</label>
+                                    <select class="form-select" id="body_type" name="body_type">
+                                        <option value="slender">Slender</option>
+                                        <option value="average" selected>Average</option>
+                                        <option value="athletic">Athletic</option>
+                                        <option value="muscular">Muscular</option>
+                                        <option value="petite">Petite</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Personality & Background -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">Personality & Background</h6>
+                            
+                            <div class="mb-3">
+                                <label for="personality" class="form-label">Personality Traits</label>
+                                <input type="text" class="form-control" id="personality_input" placeholder="Add trait and press Enter">
+                                <div class="d-flex flex-wrap gap-2 mt-2" id="personality_tags"></div>
+                                <input type="hidden" id="personality" name="personality" value="">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="archetype" class="form-label">Character Archetype</label>
+                                <select class="form-select" id="archetype" name="archetype">
+                                    <option value="" selected>None</option>
+                                    <option value="tsundere">Tsundere</option>
+                                    <option value="kuudere">Kuudere</option>
+                                    <option value="dandere">Dandere</option>
+                                    <option value="yandere">Yandere</option>
+                                    <option value="deredere">Deredere</option>
+                                    <option value="himedere">Himedere</option>
+                                    <option value="protagonist">Protagonist</option>
+                                    <option value="rival">Rival</option>
+                                    <option value="mentor">Mentor</option>
+                                    <option value="trickster">Trickster</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Style & Visual Design -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">Style & Visual Design</h6>
+                            
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label for="anime_style" class="form-label">Anime Style</label>
+                                    <select class="form-select" id="anime_style" name="anime_style">
+                                        <option value="" selected>Default</option>
+                                        {% for style in anime_styles %}
+                                        <option value="{{ style }}">{{ style }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label for="art_style" class="form-label">Art Style</label>
+                                    <select class="form-select" id="art_style" name="art_style">
+                                        <option value="" selected>Default</option>
+                                        {% for style in art_styles %}
+                                        <option value="{{ style }}">{{ style }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Distinctive Features -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold mb-3">Distinctive Features</h6>
+                            
+                            <div class="mb-3">
+                                <label for="distinctive_features" class="form-label">Special Features</label>
+                                <input type="text" class="form-control" id="distinctive_features_input" placeholder="Add feature and press Enter">
+                                <div class="d-flex flex-wrap gap-2 mt-2" id="distinctive_features_tags"></div>
+                                <input type="hidden" id="distinctive_features" name="distinctive_features" value="">
+                            </div>
+                        </div>
+                        
+                        <!-- Custom Prompt (Advanced) -->
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold mb-0">Advanced Options</h6>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#advancedOptions">
+                                    <i class="fas fa-cog"></i> Toggle
+                                </button>
+                            </div>
+                            
+                            <div class="collapse" id="advancedOptions">
+                                <div class="mb-3">
+                                    <label for="custom_prompt" class="form-label">Custom Prompt</label>
+                                    <textarea class="form-control" id="custom_prompt" name="custom_prompt" rows="3" placeholder="Override generation prompt (advanced)"></textarea>
+                                    <div class="form-text">Leave empty to use attributes-based prompt generation</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="negative_prompt" class="form-label">Negative Prompt</label>
+                                    <textarea class="form-control" id="negative_prompt" name="negative_prompt" rows="2" placeholder="Terms to avoid in generation"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="button" id="generate-btn" class="btn btn-primary">
+                                <i class="fas fa-magic me-2"></i>Generate Character
+                            </button>
+                            <button type="button" id="random-btn" class="btn btn-outline-secondary">
+                                <i class="fas fa-random me-2"></i>Random
+                            </button>
+                            <button type="reset" class="btn btn-outline-danger">
+                                <i class="fas fa-redo me-2"></i>Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Character Preview -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 fw-bold">Character Preview</h5>
+                    <div class="btn-group">
+                        <button type="button" id="regenerate-btn" class="btn btn-sm btn-outline-primary" disabled>
+                            <i class="fas fa-redo me-1"></i>Regenerate
+                        </button>
+                        <button type="button" id="save-btn" class="btn btn-sm btn-outline-success" disabled>
+                            <i class="fas fa-save me-1"></i>Save
+                        </button>
+                        <button type="button" id="evolve-btn" class="btn btn-sm btn-outline-secondary" disabled>
+                            <i class="fas fa-dna me-1"></i>Evolve
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="character-loading" class="text-center py-5 d-none">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h5 class="mb-0">Generating character...</h5>
+                        <p class="text-muted">This may take a few moments</p>
+                    </div>
+                    
+                    <div id="character-preview" class="text-center py-4">
+                        <div class="placeholder-image d-inline-block position-relative mb-3">
+                            <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 384px; height: 384px;">
+                                <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                            </div>
+                            <div class="position-absolute top-0 end-0 m-2">
+                                <span class="badge bg-primary d-none" id="character-gen">Gen 0</span>
+                            </div>
+                        </div>
+                        <h4 id="character-name">Character Name</h4>
+                        <p id="character-description" class="text-muted mb-0">
+                            Generate a character to see details
+                        </p>
+                    </div>
+                    
+                    <!-- Image Variants (displayed after generation) -->
+                    <div id="image-variants" class="d-none mt-4">
+                        <h6 class="fw-bold mb-3">Image Variants</h6>
+                        <div class="row g-2" id="variant-images">
+                            <!-- Variant images will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Color picker JS -->
+<script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+
+<script>
+    // Character data
+    let currentCharacter = null;
+    let selectedVariantIndex = 0;
+    let imageVariants = [];
+    
+    // Personality traits
+    let personalityTags = [];
+    
+    // Distinctive features
+    let distinctiveFeaturesTags = [];
+    
+    $(document).ready(function() {
+        // Initialize tag inputs
+        initializeTagInput('personality_input', 'personality_tags', personalityTags, 'personality');
+        initializeTagInput('distinctive_features_input', 'distinctive_features_tags', distinctiveFeaturesTags, 'distinctive_features');
+        
+        // Initialize color pickers
+        initializeColorPickers();
+        
+        // Generate button click
+        $('#generate-btn').click(function() {
+            generateCharacter();
+        });
+        
+        // Random button click
+        $('#random-btn').click(function() {
+            generateRandomCharacter();
+        });
+        
+        // Regenerate button click
+        $('#regenerate-btn').click(function() {
+            if (currentCharacter) {
+                regenerateCharacter(currentCharacter.id);
+            }
+        });
+        
+        // Save button click
+        $('#save-btn').click(function() {
+            if (currentCharacter) {
+                saveCharacter(currentCharacter.id);
+            }
+        });
+        
+        // Evolve button click
+        $('#evolve-btn').click(function() {
+            if (currentCharacter) {
+                window.location.href = '/character/evolve?id=' + currentCharacter.id;
+            }
+        });
+    });
+    
+    // Initialize tag input
+    function initializeTagInput(inputId, tagsContainerId, tagsArray, hiddenInputId) {
+        const input = $('#' + inputId);
+        const tagsContainer = $('#' + tagsContainerId);
+        const hiddenInput = $('#' + hiddenInputId);
+        
+        // Add tag on Enter key
+        input.keypress(function(e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                const value = input.val().trim();
+                if (value && !tagsArray.includes(value)) {
+                    tagsArray.push(value);
+                    renderTags(tagsArray, tagsContainer, hiddenInputId);
+                    input.val('');
+                }
+            }
+        });
+        
+        // Initial render
+        renderTags(tagsArray, tagsContainer, hiddenInputId);
+    }
+    
+    // Render tags
+    function renderTags(tags, container, hiddenInputId) {
+        container.empty();
+        
+        tags.forEach((tag, index) => {
+            const tagElement = $('<div class="badge bg-secondary py-2 px-3"></div>');
+            tagElement.text(tag);
+            
+            const removeBtn = $('<button type="button" class="btn-close btn-close-white ms-2"></button>');
+            removeBtn.click(function() {
+                tags.splice(index, 1);
+                renderTags(tags, container, hiddenInputId);
+            });
+            
+            tagElement.append(removeBtn);
+            container.append(tagElement);
+        });
+        
+        // Update hidden input
+        $('#' + hiddenInputId).val(JSON.stringify(tags));
+    }
+    
+    // Initialize color pickers
+    function initializeColorPickers() {
+        $('.color-picker-btn').each(function() {
+            const targetInput = $(this).data('target');
+            const inputElement = $('#' + targetInput);
+            
+            $(this).click(function() {
+                const pickr = Pickr.create({
+                    el: this,
+                    theme: 'classic',
+                    default: inputElement.val() || '#4287f5',
+                    components: {
+                        preview: true,
+                        opacity: true,
+                        hue: true,
+                        interaction: {
+                            hex: true,
+                            rgba: true,
+                            hsla: false,
+                            hsva: false,
+                            cmyk: false,
+                            input: true,
+                            clear: false,
+                            save: true
+                        }
+                    }
+                });
+                
+                pickr.on('save', (color, instance) => {
+                    const colorName = color.toHEXA().toString();
+                    inputElement.val(colorName);
+                    pickr.hide();
+                });
+                
+                pickr.show();
+            });
+        });
+    }
+    
+    // Generate character from form
+    function generateCharacter() {
+        // Show loading
+        $('#character-loading').removeClass('d-none');
+        $('#character-preview').addClass('d-none');
+        $('#image-variants').addClass('d-none');
+        
+        // Disable buttons
+        $('#generate-btn, #random-btn').attr('disabled', true);
+        
+        // Get form data
+        const formData = {};
+        
+        // Basic text and select inputs
+        $('#character-form input[type="text"]:not(#personality_input, #distinctive_features_input), #character-form select').each(function() {
+            const id = $(this).attr('id');
+            const value = $(this).val();
+            if (value) {
+                formData[id] = value;
+            }
+        });
+        
+        // Arrays (from hidden inputs with JSON)
+        ['personality', 'distinctive_features'].forEach(field => {
+            const value = $('#' + field).val();
+            if (value) {
+                try {
+                    formData[field] = JSON.parse(value);
+                } catch (e) {
+                    console.error('Error parsing JSON for', field, e);
+                }
+            }
+        });
+        
+        // Advanced options
+        const customPrompt = $('#custom_prompt').val().trim();
+        const negativePrompt = $('#negative_prompt').val().trim();
+        
+        if (customPrompt) {
+            formData.custom_prompt = customPrompt;
+        }
+        
+        if (negativePrompt) {
+            formData.negative_prompt = negativePrompt;
+        }
+        
+        // Send API request
+        $.ajax({
+            url: '/api/character/create',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                if (response.success) {
+                    // Store character data
+                    currentCharacter = response.character;
+                    imageVariants = response.image_paths || [];
+                    selectedVariantIndex = 0;
+                    
+                    // Update the UI
+                    updateCharacterPreview(currentCharacter, imageVariants);
+                    
+                    // Enable buttons
+                    $('#regenerate-btn, #save-btn, #evolve-btn').removeAttr('disabled');
+                } else {
+                    showError('Generation failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Generation failed', error);
+            },
+            complete: function() {
+                // Hide loading
+                $('#character-loading').addClass('d-none');
+                $('#character-preview').removeClass('d-none');
+                
+                // Enable buttons
+                $('#generate-btn, #random-btn').removeAttr('disabled');
+            }
+        });
+    }
+    
+    // Generate random character
+    function generateRandomCharacter() {
+        // Show loading
+        $('#character-loading').removeClass('d-none');
+        $('#character-preview').addClass('d-none');
+        $('#image-variants').addClass('d-none');
+        
+        // Disable buttons
+        $('#generate-btn, #random-btn').attr('disabled', true);
+        
+        // Send API request
+        $.ajax({
+            url: '/api/character/random',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    // Store character data
+                    currentCharacter = response.character;
+                    imageVariants = response.image_paths || [];
+                    selectedVariantIndex = 0;
+                    
+                    // Update the UI
+                    updateCharacterPreview(currentCharacter, imageVariants);
+                    
+                    // Update form values
+                    updateFormFromCharacter(currentCharacter);
+                    
+                    // Enable buttons
+                    $('#regenerate-btn, #save-btn, #evolve-btn').removeAttr('disabled');
+                } else {
+                    showError('Generation failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Generation failed', error);
+            },
+            complete: function() {
+                // Hide loading
+                $('#character-loading').addClass('d-none');
+                $('#character-preview').removeClass('d-none');
+                
+                // Enable buttons
+                $('#generate-btn, #random-btn').removeAttr('disabled');
+            }
+        });
+    }
+    
+    // Regenerate character images
+    function regenerateCharacter(characterId) {
+        // Show loading
+        $('#character-loading').removeClass('d-none');
+        $('#character-preview').addClass('d-none');
+        $('#image-variants').addClass('d-none');
+        
+        // Disable buttons
+        $('#regenerate-btn, #save-btn, #evolve-btn').attr('disabled', true);
+        
+        // Send API request
+        $.ajax({
+            url: '/api/character/regenerate',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: characterId,
+                num_samples: 4
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Update image variants
+                    imageVariants = response.image_paths || [];
+                    selectedVariantIndex = 0;
+                    
+                    // Update the UI
+                    updateCharacterPreview(currentCharacter, imageVariants);
+                    
+                    // Enable buttons
+                    $('#regenerate-btn, #save-btn, #evolve-btn').removeAttr('disabled');
+                } else {
+                    showError('Regeneration failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Regeneration failed', error);
+            },
+            complete: function() {
+                // Hide loading
+                $('#character-loading').addClass('d-none');
+                $('#character-preview').removeClass('d-none');
+                
+                // Enable buttons
+                $('#regenerate-btn, #save-btn, #evolve-btn').removeAttr('disabled');
+            }
+        });
+    }
+    
+    // Save character
+    function saveCharacter(characterId) {
+        // Disable save button
+        $('#save-btn').attr('disabled', true);
+        
+        // Send API request
+        $.ajax({
+            url: '/api/character/save',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                character_id: characterId
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showSuccess('Character saved', 'Character has been saved successfully.');
+                } else {
+                    showError('Save failed', response.error || 'Unknown error');
+                }
+            },
+            error: function(xhr, status, error) {
+                showError('Save failed', error);
+            },
+            complete: function() {
+                // Enable save button
+                $('#save-btn').removeAttr('disabled');
+            }
+        });
+    }
+    
+    // Update character preview
+    function updateCharacterPreview(character, imagePaths) {
+        // Update character info
+        $('#character-name').text(character.name || 'Unnamed Character');
+        
+        // Build description
+        let description = `${character.gender || ''}, ${character.age_category || ''}`;
+        
+        if (character.hair_color) {
+            description += `, ${character.hair_color} hair`;
+        }
+        
+        if (character.eye_color) {
+            description += `, ${character.eye_color} eyes`;
+        }
+        
+        if (character.anime_style) {
+            description += `, ${character.anime_style} style`;
+        }
+        
+        $('#character-description').text(description);
+        
+        // Update generation badge
+        if (character.generation > 0) {
+            $('#character-gen').text(`Gen ${character.generation}`).removeClass('d-none');
+        } else {
+            $('#character-gen').addClass('d-none');
+        }
+        
+        // Update main image
+        if (imagePaths && imagePaths.length > 0) {
+            const mainImageSrc = `/outputs/${imagePaths[selectedVariantIndex]}`;
+            
+            // Replace placeholder with actual image
+            $('.placeholder-image').html(`<img src="${mainImageSrc}" class="img-fluid rounded" style="max-width: 384px;" alt="${character.name || 'Character'}">`);
+            
+            // Update image variants section
+            if (imagePaths.length > 1) {
+                $('#image-variants').removeClass('d-none');
+                const variantContainer = $('#variant-images');
+                variantContainer.empty();
+                
+                imagePaths.forEach((path, index) => {
+                    const variantSrc = `/outputs/${path}`;
+                    const variantElement = $(`
+                        <div class="col-3">
+                            <div class="variant-image${index === selectedVariantIndex ? ' border border-3 border-primary' : ''}">
+                                <img src="${variantSrc}" class="img-fluid rounded cursor-pointer" alt="Variant ${index + 1}">
+                            </div>
+                        </div>
+                    `);
+                    
+                    // Add click handler to select this variant
+                    variantElement.find('img').click(function() {
+                        selectedVariantIndex = index;
+                        
+                        // Update main image
+                        $('.placeholder-image img').attr('src', variantSrc);
+                        
+                        // Update selection border
+                        $('.variant-image').removeClass('border border-3 border-primary');
+                        variantElement.find('.variant-image').addClass('border border-3 border-primary');
+                    });
+                    
+                    variantContainer.append(variantElement);
+                });
+            } else {
+                $('#image-variants').addClass('d-none');
+            }
+        } else {
+            // No images available
+            $('.placeholder-image').html(`
+                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="width: 384px; height: 384px;">
+                    <i class="fas fa-user-circle fa-5x text-secondary"></i>
+                </div>
+            `);
+            $('#image-variants').addClass('d-none');
+        }
+    }
+    
+    // Update form values from character
+    function updateFormFromCharacter(character) {
+        // Update basic text and select inputs
+        for (const [key, value] of Object.entries(character)) {
+            const input = $('#' + key);
+            if (input.length && !Array.isArray(value) && value !== null && typeof value !== 'object') {
+                input.val(value);
+            }
+        }
+        
+        // Update arrays
+        if (Array.isArray(character.personality)) {
+            personalityTags = [...character.personality];
+            renderTags(personalityTags, $('#personality_tags'), 'personality');
+        }
+        
+        if (Array.isArray(character.distinctive_features)) {
+            distinctiveFeaturesTags = [...character.distinctive_features];
+            renderTags(distinctiveFeaturesTags, $('#distinctive_features_tags'), 'distinctive_features');
+        }
+    }
+    
+    // Show success toast
+    function showSuccess(title, message) {
+        const toast = $('#toast-notification');
+        toast.removeClass('bg-danger').addClass('bg-success');
+        $('#toast-title').text(title);
+        $('#toast-body').text(message);
+        
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+    }
+    
+    // Show error toast
+    function showError(title, message) {
+        const toast = $('#toast-notification');
+        toast.removeClass('bg-success').addClass('bg-danger');
+        $('#toast-title').text(title);
+        $('#toast-body').text(message);
+        
+        const bootstrapToast = new bootstrap.Toast(toast);
+        bootstrapToast.show();
+    }
+</script>
+{% endblock %}
