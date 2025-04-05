@@ -165,21 +165,13 @@ anime_evolution/
 └── outputs/                    # Generated outputs
 ```
 
-## Screenshots
 
-Below are screenshots of the application in use:
-
-### Main Dashboard
-![Main Dashboard](docs/images/main_dashboard.png)
 
 ### Character Creation
-![Character Creation](docs/images/character_creation.png)
+![Character Creation](![image](https://github.com/user-attachments/assets/d9c363bc-a7c7-43ea-87c1-6100784a66e2)
+)
 
-### Evolution Dashboard
-![Evolution Dashboard](docs/images/evolution_dashboard.png)
 
-### Character Gallery
-![Character Gallery](docs/images/character_gallery.png)
 
 
 ## License
